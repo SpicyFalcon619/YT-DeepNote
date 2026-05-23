@@ -46,36 +46,32 @@ const SHADOW_CSS = `
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    transition: all 0.3s ease;
   }
-
-  /* Floating Mode */
-  .yt-tracker-app.floating {
-    position: fixed;
+  .yt-deepnote-app.floating {
     top: 20px;
     right: 20px;
     width: 380px;
     height: 600px;
-    max-height: 90vh;
+    background: var(--bg-dark);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
     border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    z-index: 999999;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
   }
-
-  /* Docked Mode */
-  .yt-tracker-app.docked {
-    width: 100%;
-    height: 100%;
-    min-height: 600px;
-    border-radius: 12px;
-    margin-bottom: 24px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  .yt-deepnote-app.docked {
+    top: 0;
+    right: 0;
+    width: 400px;
+    height: 100vh;
+    background: var(--bg-dark);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
   }
-
-  .yt-tracker-app.hidden {
+  .yt-deepnote-app.hidden {
     display: none !important;
   }
 
@@ -212,7 +208,7 @@ const SHADOW_CSS = `
   .modal input { background: rgba(0,0,0,0.3); border: 1px solid var(--border); color: white; padding: 8px; border-radius: 6px; font-size: 13px; outline: none; width: 100%; }
 `;
 
-class YouTubeTracker {
+class YTDeepNote {
   constructor() {
     this.videoData = null;
     this.storedData = { bookmarks: [], htmlNotes: '' };
@@ -226,13 +222,10 @@ class YouTubeTracker {
 
   initShadowDOM() {
     // Prevent multiple injections
-    if (document.getElementById('yt-tracker-root')) return;
+    if (document.getElementById('yt-deepnote-root')) return;
 
     this.container = document.createElement('div');
-    this.container.id = 'yt-tracker-root';
-    // Start with a very high z-index to ensure it sits over everything initially
-    this.container.style.position = 'relative';
-    this.container.style.zIndex = '999999';
+    this.container.id = 'yt-deepnote-root';
     document.body.appendChild(this.container);
 
     this.shadow = this.container.attachShadow({ mode: 'open' });
@@ -246,17 +239,17 @@ class YouTubeTracker {
 
   render() {
     this.wrapper = document.createElement('div');
-    this.wrapper.className = `yt-tracker-app floating`;
+    this.wrapper.className = `yt-deepnote-app floating`;
     
     this.launcher = document.createElement('button');
     this.launcher.className = `toggle-launcher hidden`;
     this.launcher.innerHTML = ICONS.open;
-    this.launcher.title = "Open YouTube Tracker";
+    this.launcher.title = "Open YT DeepNote";
 
     this.wrapper.innerHTML = `
       <div class="header" id="dragHandle">
         <div class="header-left">
-          <span style="color: var(--accent)">▶</span> YT Tracker
+          <span style="color: var(--accent)">▶</span> YT DeepNote
         </div>
         <div class="header-controls">
           <button class="icon-btn" id="btnDock" title="Dock/Float">${ICONS.dock}</button>
@@ -318,8 +311,12 @@ class YouTubeTracker {
       <!-- Settings Modal -->
       <div class="modal-overlay" id="settingsModal">
         <div class="modal">
-          <h3>Notion Settings</h3>
+          <h3>DeepNote Settings</h3>
           <div>
+            <label>Theme Accent Color</label>
+            <input type="color" id="inpAccentColor" value="#ff0000" style="padding:0; height:36px; cursor:pointer; width:100%; margin-top:4px; border:none;">
+          </div>
+          <div style="margin-top: 12px;">
             <label>Notion OAuth Integration</label>
             <button class="primary-btn" id="btnConnectNotion" style="width:100%; margin-top:4px;">Connect to Notion</button>
             <small style="display:block; margin-top:4px; color:var(--text-dim);" id="notionStatus">Not Connected</small>
@@ -329,6 +326,12 @@ class YouTubeTracker {
             <input type="text" id="inpDbId" placeholder="Database ID" autocomplete="off" data-1p-ignore="true" data-lpignore="true">
           </div>
           <button class="primary-btn" id="btnSaveSettings" style="width:100%; margin-top:8px;">Save Settings</button>
+          
+          <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); text-align: center;">
+            <h4 style="margin:0 0 4px 0; color: var(--accent); font-weight: 500;">About YT DeepNote</h4>
+            <p style="margin:0; font-size:12px; color:var(--text-dim); line-height: 1.4;">Your ultimate companion for deep learning on YouTube. Seamlessly capture timestamped Markdown notes, precision bookmarks, and sync them directly to your Notion workspace. v1.0.0-beta</p>
+          </div>
+
           <button class="icon-btn" id="btnCloseSettings" style="position:absolute; top:16px; right:16px">${ICONS.close}</button>
         </div>
       </div>
@@ -642,10 +645,9 @@ class YouTubeTracker {
     const btn = this.shadow.getElementById('btnDock');
     
     if (this.isDocked) {
-      this.wrapper.classList.remove('floating');
-      this.wrapper.classList.add('docked');
-      this.wrapper.style.top = '';
-      this.wrapper.style.left = '';
+      this.wrapper.className = `yt-deepnote-app docked`;
+      this.wrapper.style.left = 'auto';
+      this.wrapper.style.top = '0';
       btn.innerHTML = ICONS.float;
       btn.title = "Float";
       
@@ -1015,18 +1017,18 @@ class YouTubeTracker {
 }
 
 // Initialize on page load
-let trackerInstance = null;
+let deepnoteInstance = null;
 
 function bootstrap() {
-  if (window.location.hostname.includes('youtube.com') && !trackerInstance) {
-    trackerInstance = new YouTubeTracker();
+  if (window.location.hostname.includes('youtube.com') && !deepnoteInstance) {
+    deepnoteInstance = new YTDeepNote();
   }
 }
 
 // YouTube is an SPA, so we need to handle navigation
 document.addEventListener('yt-navigate-finish', () => {
-  if (!trackerInstance) bootstrap();
-  else trackerInstance.updateVideoMeta(true); // Force reload data for new video
+  if (!deepnoteInstance) bootstrap();
+  else deepnoteInstance.updateVideoMeta(true); // Force reload data for new video
 });
 
 // Fallback for initial load
@@ -1038,21 +1040,21 @@ if (document.readyState === 'complete' || document.readyState === 'interactive')
 
 // Listen for messages from background
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  if (msg.type === "TOGGLE_UI" && trackerInstance) {
-    if (trackerInstance.wrapper.classList.contains('hidden')) {
-      trackerInstance.wrapper.classList.remove('hidden');
-      trackerInstance.launcher.classList.add('hidden');
+  if (msg.type === "TOGGLE_UI" && deepnoteInstance) {
+    if (deepnoteInstance.wrapper.classList.contains('hidden')) {
+      deepnoteInstance.wrapper.classList.remove('hidden');
+      deepnoteInstance.launcher.classList.add('hidden');
     } else {
-      trackerInstance.wrapper.classList.add('hidden');
-      trackerInstance.launcher.classList.remove('hidden');
+      deepnoteInstance.wrapper.classList.add('hidden');
+      deepnoteInstance.launcher.classList.remove('hidden');
     }
     sendResponse({success:true});
-  } else if (msg.type === "QUICK_BOOKMARK" && trackerInstance && trackerInstance.videoData) {
-    trackerInstance.addBookmark("Quick Bookmark", trackerInstance.videoData.currentTime);
+  } else if (msg.type === "QUICK_BOOKMARK" && deepnoteInstance && deepnoteInstance.videoData) {
+    deepnoteInstance.addBookmark("Quick Bookmark", deepnoteInstance.videoData.currentTime);
     // Visual toast
     const toast = document.createElement('div');
     toast.innerText = "Bookmark Added!";
-    toast.style.cssText = `position:fixed; bottom:100px; left:50%; transform:translateX(-50%); background:rgba(255,0,0,0.9); color:white; padding:12px 24px; border-radius:30px; font-weight:bold; z-index:9999999; transition:0.3s; box-shadow:0 4px 12px rgba(0,0,0,0.5);`;
+    toast.style.cssText = `position:fixed; bottom:100px; left:50%; transform:translateX(-50%); background:var(--user-accent, #ff0000); color:white; padding:12px 24px; border-radius:30px; font-weight:bold; z-index:9999999; transition:0.3s; box-shadow:0 4px 12px rgba(0,0,0,0.5);`;
     document.body.appendChild(toast);
     setTimeout(() => { toast.style.opacity = '0'; setTimeout(()=>toast.remove(),300); }, 2000);
     sendResponse({success:true});
