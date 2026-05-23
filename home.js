@@ -27,7 +27,9 @@ function loadNotes() {
     // Sort by most recently edited (if we have a timestamp, else by title)
     // We don't have a specific lastEdited timestamp in the old data structure, so we'll just sort by video title
     notes.sort((a, b) => {
-      return a.data.videoData.title.localeCompare(b.data.videoData.title);
+      const t1 = a.data.videoData?.title || '';
+      const t2 = b.data.videoData?.title || '';
+      return t1.localeCompare(t2);
     });
 
     grid.innerHTML = '';
