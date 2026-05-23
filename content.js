@@ -22,6 +22,8 @@ const ICONS = {
   settings: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`,
   close: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
   open: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-8"/><path d="m15 15-3-3-3 3"/><path d="M4 16v-2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2"/></svg>`,
+  maximize: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>`,
+  minimize: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>`,
   refresh: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>`,
   camera: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>`
 };
@@ -74,6 +76,20 @@ const SHADOW_CSS = `
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    resize: both;
+    min-width: 300px;
+    min-height: 400px;
+  }
+  .yt-deepnote-app.fullscreen {
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    border-radius: 0;
+    resize: none;
+    z-index: 99999999;
   }
   .yt-deepnote-app.docked {
     top: 0;
@@ -227,6 +243,7 @@ class YTDeepNote {
     this.videoData = null;
     this.storedData = { bookmarks: [], htmlNotes: '' };
     this.isDocked = false;
+    this.isFullscreen = false;
     this.selectedColor = '#ff0000';
     this.colors = ['#ff0000', '#3498db', '#2ecc71', '#f1c40f', '#9b59b6'];
     
@@ -270,6 +287,7 @@ class YTDeepNote {
         </div>
         <div class="header-controls">
           <button class="icon-btn" id="btnHome" title="Home Dashboard">${ICONS.home}</button>
+          <button class="icon-btn" id="btnMaximize" title="Fullscreen">${ICONS.maximize}</button>
           <button class="icon-btn" id="btnDock" title="Dock/Float">${ICONS.dock}</button>
           <button class="icon-btn" id="btnSettings" title="Settings">${ICONS.settings}</button>
           <button class="icon-btn" id="btnClose" title="Close">${ICONS.close}</button>
@@ -390,6 +408,7 @@ class YTDeepNote {
       this.launcher.classList.add('hidden');
     });
 
+    $('btnMaximize').addEventListener('click', () => this.toggleFullscreen());
     $('btnDock').addEventListener('click', () => this.toggleDock());
     $('btnRefresh').addEventListener('click', () => this.updateVideoMeta(true));
 
@@ -637,6 +656,7 @@ class YTDeepNote {
   }
 
   toggleDock() {
+    if (this.isFullscreen) this.toggleFullscreen(); // exit fullscreen first
     this.isDocked = !this.isDocked;
     const btn = this.shadow.getElementById('btnDock');
     
@@ -661,6 +681,24 @@ class YTDeepNote {
       this.wrapper.style.top = '20px';
       this.wrapper.style.right = '20px';
       this.wrapper.style.left = 'auto';
+    }
+  }
+
+  toggleFullscreen() {
+    if (this.isDocked) this.toggleDock(); // exit dock first
+    this.isFullscreen = !this.isFullscreen;
+    const btn = this.shadow.getElementById('btnMaximize');
+    
+    if (this.isFullscreen) {
+      this.wrapper.classList.add('fullscreen');
+      btn.innerHTML = ICONS.minimize;
+      btn.title = "Exit Fullscreen";
+      document.body.style.overflow = 'hidden'; // prevent scrolling underneath
+    } else {
+      this.wrapper.classList.remove('fullscreen');
+      btn.innerHTML = ICONS.maximize;
+      btn.title = "Fullscreen";
+      document.body.style.overflow = '';
     }
   }
 
@@ -828,6 +866,8 @@ class YTDeepNote {
     if (isNewVideo || forceLoad) {
       this.loadData();
     }
+    
+    this.injectBookmarkButton();
   }
 
   loadData() {
@@ -920,6 +960,8 @@ class YTDeepNote {
 
       list.appendChild(el);
     });
+    
+    this.renderYouTubeDots();
   }
 
   escapeHtml(unsafe) {
@@ -1027,6 +1069,76 @@ class YTDeepNote {
           alert("Failed to sync: " + (response?.error || "Unknown error"));
         }
       });
+    });
+  }
+
+  injectBookmarkButton() {
+    const controls = document.querySelector('.ytp-right-controls');
+    if (!controls) return;
+    if (document.getElementById('yt-deepnote-btn')) return;
+
+    const btn = document.createElement('button');
+    btn.id = 'yt-deepnote-btn';
+    btn.className = 'ytp-button';
+    btn.title = 'DeepNote: Add Bookmark';
+    btn.style.verticalAlign = 'top';
+    btn.innerHTML = `<svg height="100%" version="1.1" viewBox="0 0 36 36" width="100%"><path d="M12,10 v16 l6,-4 l6,4 v-16 z" fill="var(--user-accent, #ff0000)"></path></svg>`;
+    
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.addBookmark("Bookmark");
+      this.wrapper.classList.remove('hidden');
+      this.launcher.classList.add('hidden');
+    });
+
+    controls.insertBefore(btn, controls.firstChild);
+  }
+
+  renderYouTubeDots() {
+    const container = document.querySelector('.ytp-progress-bar-container');
+    if (!container) return;
+
+    let dotsContainer = document.getElementById('yt-deepnote-dots');
+    if (!dotsContainer) {
+      dotsContainer = document.createElement('div');
+      dotsContainer.id = 'yt-deepnote-dots';
+      dotsContainer.style.position = 'absolute';
+      dotsContainer.style.top = '0';
+      dotsContainer.style.left = '0';
+      dotsContainer.style.width = '100%';
+      dotsContainer.style.height = '100%';
+      dotsContainer.style.pointerEvents = 'none';
+      dotsContainer.style.zIndex = '35';
+      container.appendChild(dotsContainer);
+    }
+
+    dotsContainer.innerHTML = '';
+    
+    if (!this.videoData || !this.videoData.duration) return;
+
+    this.storedData.bookmarks.forEach(bm => {
+      const dot = document.createElement('div');
+      const percent = (bm.time / this.videoData.duration) * 100;
+      dot.style.position = 'absolute';
+      dot.style.left = `${percent}%`;
+      dot.style.bottom = '100%';
+      dot.style.width = '8px';
+      dot.style.height = '8px';
+      dot.style.borderRadius = '50%';
+      dot.style.backgroundColor = bm.color || this.selectedColor;
+      dot.style.transform = 'translate(-50%, 50%)';
+      dot.style.pointerEvents = 'auto';
+      dot.style.cursor = 'pointer';
+      dot.style.boxShadow = '0 0 4px rgba(0,0,0,0.5)';
+      dot.title = `${bm.name} (${this.formatTime(bm.time)})`;
+      
+      dot.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const video = this.getVideoElement();
+        if(video) video.currentTime = bm.time;
+      });
+
+      dotsContainer.appendChild(dot);
     });
   }
 }
