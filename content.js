@@ -27,6 +27,7 @@ const ICONS = {
 
 const SHADOW_CSS = `
   :host {
+    /* Dark Mode Defaults */
     --bg-dark: rgba(15, 15, 15, 0.85);
     --bg-card: rgba(39, 39, 39, 0.7);
     --border: rgba(255, 255, 255, 0.1);
@@ -36,10 +37,22 @@ const SHADOW_CSS = `
     --text-dim: #aaaaaa;
     --font: 'Roboto', 'YouTube Noto', sans-serif;
   }
+
+  @media (prefers-color-scheme: light) {
+    :host {
+      --bg-dark: rgba(255, 255, 255, 0.85);
+      --bg-card: rgba(240, 240, 240, 0.7);
+      --border: rgba(0, 0, 0, 0.15);
+      --text: #111111;
+      --text-dim: #555555;
+    }
+  }
   
   * { box-sizing: border-box; }
   
-  .yt-tracker-app {
+  .yt-deepnote-app {
+    position: fixed;
+    z-index: 9999999;
     font-family: var(--font);
     color: var(--text);
     background: var(--bg-dark);
