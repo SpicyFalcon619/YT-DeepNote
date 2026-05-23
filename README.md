@@ -1,20 +1,17 @@
 # YT DeepNote
 
-> **GitHub About Section:**  
-> Your ultimate companion for deep learning on YouTube. Seamlessly capture timestamped Markdown notes, drop precision bookmarks, capture video screenshots, and 1-click sync your entire learning session directly to a Notion workspace.
-
 **YT DeepNote** is a powerful Google Chrome extension designed for students, researchers, and self-learners. It transforms the YouTube player into an advanced learning environment. Take beautiful, timestamped Markdown notes, drop precision bookmarks, capture on-screen video screenshots, and seamlessly export or 1-click sync everything directly to Notion.
 
 ## Features (v1.1.0-beta)
 
-*   **Global Home Dashboard:** A sleek, dedicated dashboard to view, manage, and export all your saved notes across different videos.
-*   **Float & Dock Overlay Editor:** An immersive, glassmorphic block-based editor overlaid directly on the video.
-*   **Rich Auto-Formatting:** Full support for Markdown shortcuts (`#`, `> `, ` ``` `, `- `, `1. `), as well as rich text mapping for bold, italics, underline, and strikethrough.
-*   **Live Bookmarks:** Drop bookmarks on the video timeline with instant click-to-seek playback.
-*   **Video Screenshots:** One-click to capture high-quality video frames directly into your notes.
-*   **Notion Sync:** Sync your entire learning session (Title, URL, Bookmarks, and Notes) directly into a Notion Database via secure OAuth.
-*   **Markdown Export:** Download your notes to a beautifully formatted `.md` file for Obsidian or Logseq.
-*   **Zero-Bleed Sandboxing:** Housed safely in a Shadow DOM so YouTube's CSS never conflicts with your writing.
+- **Global Home Dashboard:** A sleek, dedicated dashboard to view, manage, and export all your saved notes across different videos.
+- **Float & Dock Overlay Editor:** An immersive, glassmorphic block-based editor overlaid directly on the video.
+- **Rich Auto-Formatting:** Full support for Markdown shortcuts (`#`, `> `, ` ``` `, `- `, `1. `), as well as rich text mapping for bold, italics, underline, and strikethrough.
+- **Live Bookmarks:** Drop bookmarks on the video timeline with instant click-to-seek playback.
+- **Video Screenshots:** One-click to capture high-quality video frames directly into your notes.
+- **Notion Sync:** Sync your entire learning session (Title, URL, Bookmarks, and Notes) directly into a Notion Database via secure OAuth.
+- **Markdown Export:** Download your notes to a beautifully formatted `.md` file for Obsidian or Logseq.
+- **Zero-Bleed Sandboxing:** Housed safely in a Shadow DOM so YouTube's CSS never conflicts with your writing.
 
 ## Installation (Developer Mode)
 
@@ -24,37 +21,35 @@
 4. Click **Load unpacked** and select the folder containing this extension.
 5. Open any YouTube video and click the YT DeepNote floating action button!
 
-## Notion Integration (Developer Setup)
+## Notion Integration (1-Minute Setup)
 
-To enable the 1-click Notion Sync feature, you need to set up a free Notion Integration and deploy a tiny OAuth proxy.
+To enable the 1-click Notion Sync feature, you just need a standard Notion Internal Integration token.
 
 ### 1. Create a Notion Integration
+
 1. Go to [Notion Developers](https://www.notion.so/my-integrations).
-2. Click **New integration**, name it "YT DeepNote", and select your workspace.
-3. Once created, go to the **Distribution** tab and make it **Public**.
-4. Set the Redirect URI to: `https://<YOUR_CHROME_EXTENSION_ID>.chromiumapp.org/`
-5. Copy your **Client ID** and **Client Secret**.
+2. Click **New integration**, name it "YT DeepNote", and select the workspace where your database lives.
+3. Once created, copy the **Internal Integration Secret**.
 
-### 2. Deploy the OAuth Proxy
-Because Chrome Extensions cannot securely store client secrets, you must deploy the provided proxy server.
-1. Navigate to the `notion-oauth-proxy/` folder in this repository.
-2. Deploy the folder to [Vercel](https://vercel.com/) or [Render](https://render.com/).
-3. In your Vercel/Render dashboard, add the following Environment Variables:
-   *   `NOTION_CLIENT_ID` = (from Notion)
-   *   `NOTION_CLIENT_SECRET` = (from Notion)
-   *   `EXTENSION_REDIRECT_URI` = `https://<YOUR_CHROME_EXTENSION_ID>.chromiumapp.org/`
+### 2. Connect Your Database
 
-### 3. Update the Extension Code
-1. Open `background.js` in the extension root.
-2. Update the configuration constants at the top of the file:
-   ```javascript
-   const NOTION_CLIENT_ID = 'your_client_id_here';
-   const OAUTH_PROXY_URL = 'https://your-deployed-proxy.vercel.app/auth/notion';
-   ```
-3. Reload the extension in Chrome!
+1. Create a new Notion Database for your notes.
+2. Click the `...` menu in the top right of your Notion database page.
+3. Click **Add connections** and search for "YT DeepNote" (the integration you just created). Select it to give it access.
+4. Copy the Database ID from the URL.
+   _Example: `https://notion.so/workspace/`**`1234567890abcdef1234567890abcdef`**`?v=...` (The bolded part is your ID)._
+
+### 3. Link the Extension
+
+1. Open a YouTube video and click the YT DeepNote button.
+2. Click the **Settings (⚙️)** icon in the top right.
+3. Paste your **Notion API Token** (the secret you copied) and your **Database ID**.
+4. Click Save!
 
 ## Roadmap
+
 We are actively building out exciting new capabilities for future releases, including Tiptap WYSIWYG editing, real-time sync, local OCR screenshot extraction, semantic clustering using Anthropic Claude, and a global library dashboard!
 
 ## License
+
 MIT License. See `LICENSE` for more information.

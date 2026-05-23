@@ -26,54 +26,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       .catch(error => sendResponse({ success: false, error: error.message }));
     return true; // Keep the message channel open for async response
   }
-  if (request.type === 'START_NOTION_OAUTH') {
-    startNotionOAuth()
-      .then(token => sendResponse({ success: true, token }))
-      .catch(error => sendResponse({ success: false, error: error.toString() }));
-    return true;
-  }
 });
 
-// Configure these variables before releasing the extension
-const NOTION_CLIENT_ID = 'YOUR_NOTION_CLIENT_ID_HERE';
-const OAUTH_PROXY_URL = 'https://your-proxy-server.vercel.app/auth/notion';
-
-async function startNotionOAuth() {
-  if (NOTION_CLIENT_ID === 'YOUR_NOTION_CLIENT_ID_HERE') {
-    throw new Error("Extension owner has not configured Notion OAuth yet.");
-  }
-  
-  const redirectUri = chrome.identity.getRedirectURL();
-  const authUrl = `https://api.notion.com/v1/oauth/authorize?client_id=${NOTION_CLIENT_ID}&response_type=code&owner=user&redirect_uri=${encodeURIComponent(redirectUri)}`;
-
-  return new Promise((resolve, reject) => {
-    chrome.identity.launchWebAuthFlow({ url: authUrl, interactive: true }, async (redirectUrl) => {
-      if (chrome.runtime.lastError || !redirectUrl) {
-        return reject(chrome.runtime.lastError?.message || 'Authorization failed or cancelled.');
-      }
-
-      try {
-        const url = new URL(redirectUrl);
-        const code = url.searchParams.get('code');
-        if (!code) return reject('No authorization code returned from Notion.');
-
-        // Exchange code via proxy
-        const response = await fetch(OAUTH_PROXY_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code })
-        });
-        
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || 'Failed to exchange token via proxy');
-        
-        resolve(data.access_token);
-      } catch (err) {
-        reject(err.message);
-      }
-    });
-  });
-}
 
 async function handleNotionSync(data) {
   const { token, databaseId, videoData, notes, bookmarks } = data;

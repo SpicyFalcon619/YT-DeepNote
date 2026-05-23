@@ -335,9 +335,8 @@ class YTDeepNote {
             <input type="color" id="inpAccentColor" value="#ff0000" style="padding:0; height:36px; cursor:pointer; width:100%; margin-top:4px; border:none;">
           </div>
           <div style="margin-top: 12px;">
-            <label>Notion OAuth Integration</label>
-            <button class="primary-btn" id="btnConnectNotion" style="width:100%; margin-top:4px;">Connect to Notion</button>
-            <small style="display:block; margin-top:4px; color:var(--text-dim);" id="notionStatus">Not Connected</small>
+            <label>Notion API Token</label>
+            <input type="password" id="inpNotionToken" placeholder="secret_..." autocomplete="off" data-1p-ignore="true" data-lpignore="true">
           </div>
           <div style="margin-top: 12px;">
             <label>Database ID</label>
@@ -615,43 +614,18 @@ class YTDeepNote {
     $('btnCloseSettings').addEventListener('click', () => $('settingsModal').classList.remove('active'));
     $('btnSaveSettings').addEventListener('click', () => {
       chrome.storage.local.set({
-        notionDbId: $('inpDbId').value,
-        accentColor: $('inpAccentColor').value
+        accentColor: $('inpAccentColor').value,
+        notionToken: $('inpNotionToken').value,
+        notionDbId: $('inpDbId').value
       }, () => {
         $('settingsModal').classList.remove('active');
         this.container.style.setProperty('--user-accent', $('inpAccentColor').value);
       });
     });
 
-    $('btnConnectNotion').addEventListener('click', () => {
-      const btn = $('btnConnectNotion');
-      const original = btn.innerText;
-      btn.innerText = 'Connecting...';
-      btn.disabled = true;
-
-      chrome.runtime.sendMessage({ type: 'START_NOTION_OAUTH' }, (response) => {
-        btn.disabled = false;
-        if (response && response.success) {
-          chrome.storage.local.set({ notionToken: response.token }, () => {
-            btn.innerText = 'Connected!';
-            $('notionStatus').innerText = 'Connected to Notion';
-            $('notionStatus').style.color = '#2ecc71';
-            setTimeout(() => { btn.innerText = 'Connect to Notion'; }, 2000);
-          });
-        } else {
-          btn.innerText = 'Failed';
-          alert('OAuth Failed: ' + (response?.error || 'Unknown error'));
-          setTimeout(() => { btn.innerText = original; }, 2000);
-        }
-      });
-    });
-
     chrome.storage.local.get(['notionToken', 'notionDbId', 'accentColor'], (res) => {
-      if(res.notionToken) {
-        $('notionStatus').innerText = 'Connected to Notion';
-        $('notionStatus').style.color = '#2ecc71';
-      }
-      if(res.notionDbId) $('inpDbId').value = res.notionDbId;
+      if (res.notionToken) $('inpNotionToken').value = res.notionToken;
+      if (res.notionDbId) $('inpDbId').value = res.notionDbId;
       if(res.accentColor) {
         $('inpAccentColor').value = res.accentColor;
         this.container.style.setProperty('--user-accent', res.accentColor);
