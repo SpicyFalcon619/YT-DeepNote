@@ -954,21 +954,28 @@ class YTDeepNote {
     Array.from(temp.children).forEach(child => {
       if (!child.classList.contains('block')) return;
       
-      let text = child.innerHTML.replace(/<br\s*\/?>/gi, '\n');
-      text = text.replace(/<[^>]+>/g, ''); // Strip inline tags for basic markdown
-      
-      if (child.tagName === 'H1') md += `# ${text}\n`;
-      else if (child.tagName === 'H2') md += `## ${text}\n`;
-      else if (child.tagName === 'H3') md += `### ${text}\n`;
-      else if (child.tagName === 'BLOCKQUOTE') md += `> ${text}\n`;
-      else if (child.tagName === 'PRE') md += `\`\`\`\n${text}\n\`\`\`\n`;
-      else if (child.classList.contains('ul-item')) md += `- ${text}\n`;
-      else if (child.classList.contains('ol-item')) md += `1. ${text}\n`;
-      else if (child.querySelector('img')) {
+      if (child.querySelector('img')) {
          const img = child.querySelector('img');
          if (img && img.src) md += `\n![](${img.src})\n\n`;
+         return;
       }
-      else md += `${text}\n`;
+      
+      // Convert <br> to newlines first
+      let htmlWithNewlines = child.innerHTML.replace(/<br\s*\/?>/gi, '\n');
+      
+      // Create a temporary element to let the browser decode HTML entities and strip tags
+      const decoder = document.createElement('div');
+      decoder.innerHTML = htmlWithNewlines;
+      let text = (decoder.textContent || "").trimEnd();
+      
+      if (child.tagName === 'H1') md += `# ${text}\n\n`;
+      else if (child.tagName === 'H2') md += `## ${text}\n\n`;
+      else if (child.tagName === 'H3') md += `### ${text}\n\n`;
+      else if (child.tagName === 'BLOCKQUOTE') md += `> ${text}\n\n`;
+      else if (child.tagName === 'PRE') md += `\`\`\`\n${text}\n\`\`\`\n\n`;
+      else if (child.classList.contains('ul-item')) md += `- ${text}\n`;
+      else if (child.classList.contains('ol-item')) md += `1. ${text}\n`;
+      else md += `${text}\n\n`;
     });
     
     return md.trim();
