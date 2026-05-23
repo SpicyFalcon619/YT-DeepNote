@@ -226,6 +226,9 @@ class YTDeepNote {
 
     this.container = document.createElement('div');
     this.container.id = 'yt-deepnote-root';
+    // Start with a very high z-index to ensure it sits over everything initially
+    this.container.style.position = 'relative';
+    this.container.style.zIndex = '999999';
     document.body.appendChild(this.container);
 
     this.shadow = this.container.attachShadow({ mode: 'open' });
