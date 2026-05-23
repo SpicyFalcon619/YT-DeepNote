@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "YT DeepNote",
+  "version": "1.0.0",
+  "version_name": "1.0.0-beta",
+  "description": "Take beautiful, timestamped, Markdown notes directly on top of YouTube videos and sync them to Notion.",
+  "permissions": [
+    "sidePanel",
+    "storage",
+    "scripting",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "*://*.youtube.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.youtube.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "Open Tracker"
+  },
+  "commands": {
+    "add-quick-bookmark": {
+      "suggested_key": {
+        "default": "Alt+B",
+        "mac": "Alt+B"
+      },
+      "description": "Drop a quick-bookmark at the active timestamp."
+    }
+  }
+}
