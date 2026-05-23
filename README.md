@@ -1,11 +1,15 @@
 # YT DeepNote
 
+> **GitHub About Section:**  
+> Your ultimate companion for deep learning on YouTube. Seamlessly capture timestamped Markdown notes, drop precision bookmarks, capture video screenshots, and 1-click sync your entire learning session directly to a Notion workspace.
+
 **YT DeepNote** is a powerful Google Chrome extension designed for students, researchers, and self-learners. It transforms the YouTube player into an advanced learning environment. Take beautiful, timestamped Markdown notes, drop precision bookmarks, capture on-screen video screenshots, and seamlessly export or 1-click sync everything directly to Notion.
 
-## Features (v1.0.0-beta)
+## Features (v1.1.0-beta)
 
+*   **Global Home Dashboard:** A sleek, dedicated dashboard to view, manage, and export all your saved notes across different videos.
 *   **Float & Dock Overlay Editor:** An immersive, glassmorphic block-based editor overlaid directly on the video.
-*   **Rich Auto-Formatting:** Full support for Markdown shortcuts (`#`, `> `, ` ``` `, `- `, `1. `).
+*   **Rich Auto-Formatting:** Full support for Markdown shortcuts (`#`, `> `, ` ``` `, `- `, `1. `), as well as rich text mapping for bold, italics, underline, and strikethrough.
 *   **Live Bookmarks:** Drop bookmarks on the video timeline with instant click-to-seek playback.
 *   **Video Screenshots:** One-click to capture high-quality video frames directly into your notes.
 *   **Notion Sync:** Sync your entire learning session (Title, URL, Bookmarks, and Notes) directly into a Notion Database via secure OAuth.
