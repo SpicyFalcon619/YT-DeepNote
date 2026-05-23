@@ -35,6 +35,7 @@
     }
   ],
   "action": {
+    "default_icon": "icons/icon128.png",
     "default_title": "Open Tracker"
   },
   "commands": {
