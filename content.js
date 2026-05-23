@@ -960,13 +960,25 @@ class YTDeepNote {
          return;
       }
       
-      // Convert <br> to newlines first
-      let htmlWithNewlines = child.innerHTML.replace(/<br\s*\/?>/gi, '\n');
+      // Convert formatting tags to Markdown syntax before stripping HTML
+      let htmlProcessed = child.innerHTML.replace(/<br\s*\/?>/gi, '\n');
+      htmlProcessed = htmlProcessed
+        .replace(/<(b|strong)[^>]*>/gi, '**')
+        .replace(/<\/(b|strong)>/gi, '**')
+        .replace(/<(i|em)[^>]*>/gi, '*')
+        .replace(/<\/(i|em)>/gi, '*')
+        .replace(/<(s|strike)[^>]*>/gi, '~~')
+        .replace(/<\/(s|strike)>/gi, '~~')
+        .replace(/<u[^>]*>/gi, '__U_START__')
+        .replace(/<\/u>/gi, '__U_END__');
       
-      // Create a temporary element to let the browser decode HTML entities and strip tags
+      // Create a temporary element to let the browser decode HTML entities and strip remaining tags
       const decoder = document.createElement('div');
-      decoder.innerHTML = htmlWithNewlines;
+      decoder.innerHTML = htmlProcessed;
       let text = (decoder.textContent || "").trimEnd();
+      
+      // Restore underline HTML (since pure Markdown doesn't have a native underline syntax)
+      text = text.replace(/__U_START__/g, '<u>').replace(/__U_END__/g, '</u>');
       
       if (child.tagName === 'H1') md += `# ${text}\n\n`;
       else if (child.tagName === 'H2') md += `## ${text}\n\n`;
