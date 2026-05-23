@@ -337,7 +337,7 @@ class YTDeepNote {
             <button data-cmd="formatBlock" data-val="PRE" title="Code Block">${ICONS.code}</button>
             <button data-cmd="createLink" title="Link">${ICONS.link}</button>
             <div style="width:1px; background:var(--border); margin:4px"></div>
-            <button data-cmd="insertTimestamp" title="Insert Timestamp (Ctrl+Shift+T)">${ICONS.timestamp}</button>
+            <button data-cmd="insertTimestamp" title="Insert Timestamp (Alt+T)">${ICONS.timestamp}</button>
             <button data-cmd="insertScreenshot" title="Screenshot Video Frame">${ICONS.camera}</button>
           </div>
           <div class="editor-content" id="editor" placeholder="Take your immersive notes here..."></div>
@@ -527,7 +527,7 @@ class YTDeepNote {
     });
 
     editor.addEventListener('keydown', (e) => {
-      if (e.key === 'T' && e.ctrlKey && e.shiftKey) {
+      if (e.key.toLowerCase() === 't' && e.altKey) {
         e.preventDefault();
         this.insertTimestamp();
         return;

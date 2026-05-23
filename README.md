@@ -2,16 +2,22 @@
 
 **YT DeepNote** is a powerful Google Chrome extension designed for students, researchers, and self-learners. It transforms the YouTube player into an advanced learning environment. Take beautiful, timestamped Markdown notes, drop precision bookmarks, capture on-screen video screenshots, and seamlessly export or 1-click sync everything directly to Notion.
 
-## Features (v1.1.0-beta)
+## Features (v1.2.0-beta)
 
+- **YouTube Player Integration:** A native Bookmark button injected directly into the YouTube player controls, and colored bookmark dots injected directly onto the YouTube progress scrub bar.
+- **Clickable Timestamp Chips:** Press `Alt+T` to drop interactive timestamp chips into your notes. Click them to instantly seek the video.
+- **Resizable & Fullscreen Editor:** Drag the bottom right corner to resize the floating overlay, or click the Maximize button for a distraction-free fullscreen canvas.
 - **Global Home Dashboard:** A sleek, dedicated dashboard to view, manage, and export all your saved notes across different videos.
-- **Float & Dock Overlay Editor:** An immersive, glassmorphic block-based editor overlaid directly on the video.
 - **Rich Auto-Formatting:** Full support for Markdown shortcuts (`#`, `> `, ` ``` `, `- `, `1. `), as well as rich text mapping for bold, italics, underline, and strikethrough.
 - **Live Bookmarks:** Drop bookmarks on the video timeline with instant click-to-seek playback.
 - **Video Screenshots:** One-click to capture high-quality video frames directly into your notes.
-- **Notion Sync:** Sync your entire learning session (Title, URL, Bookmarks, and Notes) directly into a Notion Database via secure OAuth.
+- **Notion Sync:** Sync your entire learning session (Title, URL, Bookmarks, and Notes) directly into a Notion Database.
 - **Markdown Export:** Download your notes to a beautifully formatted `.md` file for Obsidian or Logseq.
-- **Zero-Bleed Sandboxing:** Housed safely in a Shadow DOM so YouTube's CSS never conflicts with your writing.
+
+## Keyboard Shortcuts
+
+- `Alt+B` : **Quick Bookmark** (Global). Drops a bookmark at the current video timestamp.
+- `Alt+T` : **Insert Timestamp** (While editing). Drops a clickable timestamp chip into your notes.
 
 ## Installation (Developer Mode)
 
