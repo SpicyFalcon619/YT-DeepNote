@@ -25,7 +25,8 @@ const ICONS = {
   maximize: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>`,
   minimize: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>`,
   refresh: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>`,
-  camera: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>`
+  camera: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>`,
+  timestamp: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`
 };
 
 const SHADOW_CSS = `
@@ -223,6 +224,9 @@ const SHADOW_CSS = `
   .editor-content p.block { margin: 0 0 4px 0; }
   .editor-content .block.ul-item { display: list-item; margin-left: 20px; list-style-type: disc; }
   .editor-content .block.ol-item { display: list-item; margin-left: 20px; list-style-type: decimal; }
+  
+  .ts-chip { background: var(--accent); color: white; padding: 2px 6px; border-radius: 4px; font-size: 12px; cursor: pointer; user-select: none; font-weight: bold; margin-right: 4px; display: inline-block; vertical-align: middle; }
+  .ts-chip:hover { filter: brightness(1.2); }
 
   /* Footer Actions */
   .actions { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--border); background: rgba(0,0,0,0.2); }
@@ -333,6 +337,7 @@ class YTDeepNote {
             <button data-cmd="formatBlock" data-val="PRE" title="Code Block">${ICONS.code}</button>
             <button data-cmd="createLink" title="Link">${ICONS.link}</button>
             <div style="width:1px; background:var(--border); margin:4px"></div>
+            <button data-cmd="insertTimestamp" title="Insert Timestamp (Ctrl+Shift+T)">${ICONS.timestamp}</button>
             <button data-cmd="insertScreenshot" title="Screenshot Video Frame">${ICONS.camera}</button>
           </div>
           <div class="editor-content" id="editor" placeholder="Take your immersive notes here..."></div>
@@ -443,6 +448,8 @@ class YTDeepNote {
               this.shadow.querySelectorAll('#editor a').forEach(a => a.target = "_blank");
             }, 100);
           }
+        } else if (cmd === 'insertTimestamp') {
+          this.insertTimestamp();
         } else if (cmd === 'insertScreenshot') {
           this.insertScreenshot();
         } else if (cmd === 'formatBlock') {
@@ -498,6 +505,15 @@ class YTDeepNote {
           this.moveCursorToEnd(lastBlock);
         }
       }
+      
+      const tsChip = e.target.closest('.ts-chip');
+      if (tsChip) {
+        const time = parseFloat(tsChip.dataset.time);
+        const video = this.getVideoElement();
+        if (video && !isNaN(time)) {
+          video.currentTime = time;
+        }
+      }
     });
     
     editor.addEventListener('input', (e) => {
@@ -511,6 +527,12 @@ class YTDeepNote {
     });
 
     editor.addEventListener('keydown', (e) => {
+      if (e.key === 'T' && e.ctrlKey && e.shiftKey) {
+        e.preventDefault();
+        this.insertTimestamp();
+        return;
+      }
+      
       let node = this.getSafeSelection().anchorNode;
       if (!node) return;
       if (node.nodeType === 3) node = node.parentNode;
@@ -700,6 +722,37 @@ class YTDeepNote {
       btn.title = "Fullscreen";
       document.body.style.overflow = '';
     }
+  }
+
+  insertTimestamp() {
+    const video = this.getVideoElement();
+    if (!video) return;
+    
+    const time = video.currentTime;
+    const formatted = this.formatTime(time);
+    
+    const chip = `<span class="ts-chip" contenteditable="false" data-time="${time}">▶ ${formatted}</span>&nbsp;`;
+    
+    const selection = this.getSafeSelection();
+    if (selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      const editor = this.shadow.getElementById('editor');
+      
+      if (editor.contains(range.commonAncestorContainer)) {
+        document.execCommand('insertHTML', false, chip);
+        this.saveData();
+        return;
+      }
+    }
+    
+    const editor = this.shadow.getElementById('editor');
+    if (!editor.innerHTML.trim() || editor.innerHTML === '<br>') {
+      editor.innerHTML = `<p class="block" contenteditable="true">${chip}</p>`;
+    } else {
+      editor.lastElementChild.insertAdjacentHTML('beforeend', chip);
+    }
+    this.moveCursorToEnd(editor.lastElementChild);
+    this.saveData();
   }
 
   insertScreenshot() {
@@ -985,6 +1038,7 @@ class YTDeepNote {
       // Convert formatting tags to Markdown syntax before stripping HTML
       let htmlProcessed = child.innerHTML.replace(/<br\s*\/?>/gi, '\n');
       htmlProcessed = htmlProcessed
+        .replace(/<span class="ts-chip"[^>]*data-time="([^"]+)"[^>]*>▶ ([^<]+)<\/span>/gi, '[▶ $2](ytdn://seek/$1)')
         .replace(/<(b|strong)[^>]*>/gi, '**')
         .replace(/<\/(b|strong)>/gi, '**')
         .replace(/<(i|em)[^>]*>/gi, '*')
