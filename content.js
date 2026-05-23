@@ -2,6 +2,7 @@
 // Inject Immersive Shadow DOM Overlay
 
 const ICONS = {
+  home: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
   bold: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 12a4 4 0 0 0 0-8H6v8"/><path d="M15 20a4 4 0 0 0 0-8H6v8Z"/></svg>`,
   italic: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></svg>`,
   underline: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3"/><line x1="4" y1="21" x2="20" y2="21"/></svg>`,
@@ -268,6 +269,7 @@ class YTDeepNote {
           <span style="color: var(--accent)">▶</span> YT DeepNote
         </div>
         <div class="header-controls">
+          <button class="icon-btn" id="btnHome" title="Home Dashboard">${ICONS.home}</button>
           <button class="icon-btn" id="btnDock" title="Dock/Float">${ICONS.dock}</button>
           <button class="icon-btn" id="btnSettings" title="Settings">${ICONS.settings}</button>
           <button class="icon-btn" id="btnClose" title="Close">${ICONS.close}</button>
@@ -378,6 +380,10 @@ class YTDeepNote {
     $('btnClose').addEventListener('click', () => {
       this.wrapper.classList.add('hidden');
       this.launcher.classList.remove('hidden');
+    });
+
+    $('btnHome').addEventListener('click', () => {
+        window.open(chrome.runtime.getURL('home.html'), '_blank');
     });
     
     this.launcher.addEventListener('click', () => {

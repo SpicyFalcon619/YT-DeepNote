@@ -23,6 +23,12 @@
       "run_at": "document_idle"
     }
   ],
+  "web_accessible_resources": [
+    {
+      "resources": ["home.html", "home.css", "home.js"],
+      "matches": ["*://*.youtube.com/*"]
+    }
+  ],
   "action": {
     "default_title": "Open Tracker"
   },

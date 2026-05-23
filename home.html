@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YT DeepNote - Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="home.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <header class="header">
+      <div class="logo">
+        <span class="logo-icon">▶</span>
+        <h1>YT DeepNote</h1>
+      </div>
+      <div class="header-actions">
+        <button id="btnRefresh" class="btn secondary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          Refresh
+        </button>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="section-title">
+        <h2>Your Notes</h2>
+        <p class="subtitle">Manage and export your saved video notes.</p>
+      </div>
+
+      <div id="notesGrid" class="notes-grid">
+        <!-- Notes will be injected here dynamically by home.js -->
+        <div class="loading-state">Loading notes...</div>
+      </div>
+    </main>
+  </div>
+
+  <script src="home.js"></script>
+</body>
+</html>
