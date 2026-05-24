@@ -313,7 +313,7 @@ class YTDeepNote {
             ${this.colors.map((c, i) => `<div class="color ${i===0?'active':''}" data-color="${c}" style="background-color: ${c}"></div>`).join('')}
           </div>
           <div class="bookmark-form">
-            <input type="text" id="bmInput" class="bookmark-input" placeholder="What happens here?" maxlength="40" autocomplete="off" data-1p-ignore="true" data-lpignore="true" name="random_bm_name_123">
+            <input type="text" id="bmInput" class="bookmark-input" placeholder="What happens here?" maxlength="40" autocomplete="new-password" spellcheck="false" data-1p-ignore="true" data-lpignore="true">
             <button class="primary-btn" id="btnAddBm">Save</button>
           </div>
           <div class="bookmarks-list" id="bmList">
@@ -359,7 +359,7 @@ class YTDeepNote {
           </div>
           <div style="margin-top: 12px;">
             <label>Notion API Token</label>
-            <input type="password" id="inpNotionToken" placeholder="secret_..." autocomplete="off" data-1p-ignore="true" data-lpignore="true">
+            <input type="text" id="inpNotionToken" placeholder="secret_..." autocomplete="new-password" data-1p-ignore="true" data-lpignore="true" style="-webkit-text-security: disc;">
           </div>
           <div style="margin-top: 12px;">
             <label>Database ID</label>
