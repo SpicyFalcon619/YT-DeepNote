@@ -32,6 +32,8 @@ const ICONS = {
   timestamp: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`
 };
 
+const IS_SIDEPANEL = window.location.protocol === 'chrome-extension:';
+
 const SHADOW_CSS = `
   :host {
     /* Dark Mode Defaults */
@@ -262,11 +264,14 @@ class YTDeepNote {
     this.isFullscreen = false;
     this.isEditorExpanded = false;
     this.isPreviewMode = false;
+    this.hideInFullscreen = true;
     this.selectedColor = '#ff0000';
     this.colors = ['#ff0000', '#3498db', '#2ecc71', '#f1c40f', '#9b59b6'];
     
     this.initShadowDOM();
     this.pollInterval = setInterval(() => this.updateVideoMeta(), 1000);
+    
+    document.addEventListener('fullscreenchange', () => this.handleFullscreenChange());
   }
 
   initShadowDOM() {
@@ -275,10 +280,17 @@ class YTDeepNote {
 
     this.container = document.createElement('div');
     this.container.id = 'yt-deepnote-root';
-    // Start with a very high z-index to ensure it sits over everything initially
-    this.container.style.position = 'relative';
-    this.container.style.zIndex = '999999';
-    document.body.appendChild(this.container);
+    
+    if (IS_SIDEPANEL) {
+      this.container.style.width = '100vw';
+      this.container.style.height = '100vh';
+      document.body.appendChild(this.container);
+    } else {
+      // Start with a very high z-index to ensure it sits over everything initially
+      this.container.style.position = 'relative';
+      this.container.style.zIndex = '999999';
+      document.body.appendChild(this.container);
+    }
 
     this.shadow = this.container.attachShadow({ mode: 'open' });
 
@@ -382,7 +394,11 @@ class YTDeepNote {
             <label>Database ID</label>
             <input type="text" id="inpDbId" placeholder="Database ID" autocomplete="off" data-1p-ignore="true" data-lpignore="true">
           </div>
-          <button class="primary-btn" id="btnSaveSettings" style="width:100%; margin-top:8px;">Save Settings</button>
+          <div style="margin-top: 12px; display: flex; align-items: center; gap: 8px;">
+            <input type="checkbox" id="chkHideInFullscreen" checked style="width: auto; padding: 0; margin: 0; cursor: pointer;">
+            <label for="chkHideInFullscreen" style="margin: 0; cursor: pointer; color: white;">Hide Extension in Fullscreen</label>
+          </div>
+          <button class="primary-btn" id="btnSaveSettings" style="width:100%; margin-top:12px;">Save Settings</button>
           
           <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); text-align: center;">
             <h4 style="margin:0 0 4px 0; color: var(--accent); font-weight: 500;">About YT DeepNote</h4>
@@ -396,6 +412,24 @@ class YTDeepNote {
 
     this.shadow.appendChild(this.wrapper);
     this.shadow.appendChild(this.launcher);
+    
+    if (IS_SIDEPANEL) {
+      this.wrapper.classList.remove('hidden');
+      this.wrapper.className = 'yt-deepnote-app docked';
+      this.wrapper.style.position = 'static';
+      this.wrapper.style.width = '100%';
+      this.wrapper.style.height = '100vh';
+      this.launcher.style.display = 'none';
+      this.shadow.getElementById('dragHandle').style.cursor = 'default';
+      this.shadow.getElementById('btnDock').style.display = 'none';
+      this.shadow.getElementById('btnMaximize').style.display = 'none';
+      this.shadow.getElementById('btnClose').style.display = 'none';
+      
+      // Ping the active tab to tell it we opened
+      chrome.tabs.query({active: true, currentWindow: true}, tabs => {
+        if (tabs[0]) chrome.tabs.sendMessage(tabs[0].id, { type: "SIDEPANEL_OPENED" });
+      });
+    }
 
     // Prevent keydown/keyup/keypress from bleeding into YouTube
     ['keydown', 'keyup', 'keypress'].forEach(evt => {
@@ -687,16 +721,22 @@ class YTDeepNote {
       chrome.storage.local.set({
         accentColor: $('inpAccentColor').value,
         notionToken: $('inpNotionToken').value,
-        notionDbId: $('inpDbId').value
+        notionDbId: $('inpDbId').value,
+        hideInFullscreen: $('chkHideInFullscreen').checked
       }, () => {
         $('settingsModal').classList.remove('active');
         this.container.style.setProperty('--user-accent', $('inpAccentColor').value);
+        this.hideInFullscreen = $('chkHideInFullscreen').checked;
       });
     });
 
-    chrome.storage.local.get(['notionToken', 'notionDbId', 'accentColor'], (res) => {
+    chrome.storage.local.get(['notionToken', 'notionDbId', 'accentColor', 'hideInFullscreen'], (res) => {
       if (res.notionToken) $('inpNotionToken').value = res.notionToken;
       if (res.notionDbId) $('inpDbId').value = res.notionDbId;
+      if (res.hideInFullscreen !== undefined) {
+        $('chkHideInFullscreen').checked = res.hideInFullscreen;
+        this.hideInFullscreen = res.hideInFullscreen;
+      }
       if(res.accentColor) {
         $('inpAccentColor').value = res.accentColor;
         this.container.style.setProperty('--user-accent', res.accentColor);
@@ -708,31 +748,28 @@ class YTDeepNote {
   }
 
   toggleDock() {
-    if (this.isFullscreen) this.toggleFullscreen(); // exit fullscreen first
-    this.isDocked = !this.isDocked;
-    const btn = this.shadow.getElementById('btnDock');
+    // Hide the floating UI
+    this.wrapper.classList.add('hidden');
+    this.launcher.classList.add('hidden'); // Also hide launcher since sidepanel is now active
     
-    if (this.isDocked) {
-      this.wrapper.className = `yt-deepnote-app docked`;
-      this.wrapper.style.left = 'auto';
-      this.wrapper.style.top = '0';
-      btn.innerHTML = ICONS.float;
-      btn.title = "Float";
-      
-      const secondary = document.querySelector('#secondary-inner') || document.querySelector('#secondary');
-      if (secondary) {
-        secondary.insertBefore(this.container, secondary.firstChild);
-      }
+    // Open Chrome's Native Side Panel
+    chrome.runtime.sendMessage({ type: 'OPEN_SIDE_PANEL' });
+    
+    // Optional: We can listen for the side panel closing to show the launcher again,
+    // but for now, the user can just click the browser toolbar icon if they want it back.
+  }
+
+  handleFullscreenChange() {
+    if (!this.hideInFullscreen) {
+      this.container.style.display = 'block';
+      return;
+    }
+    
+    if (document.fullscreenElement) {
+      // In fullscreen, hide the whole container
+      this.container.style.display = 'none';
     } else {
-      this.wrapper.classList.remove('docked');
-      this.wrapper.classList.add('floating');
-      btn.innerHTML = ICONS.dock;
-      btn.title = "Dock to Sidebar";
-      
-      document.body.appendChild(this.container);
-      this.wrapper.style.top = '20px';
-      this.wrapper.style.right = '20px';
-      this.wrapper.style.left = 'auto';
+      this.container.style.display = 'block';
     }
   }
 
@@ -833,12 +870,23 @@ class YTDeepNote {
   }
 
   insertTimestamp() {
+    if (IS_SIDEPANEL) {
+      chrome.tabs.query({active: true, currentWindow: true}, tabs => {
+        if (tabs[0]) {
+          chrome.tabs.sendMessage(tabs[0].id, { type: "GET_VIDEO_META" }, (res) => {
+            if (res && res.videoData) this._performInsertTimestamp(res.videoData.currentTime);
+          });
+        }
+      });
+      return;
+    }
     const video = this.getVideoElement();
     if (!video) return;
-    
-    const time = video.currentTime;
+    this._performInsertTimestamp(video.currentTime);
+  }
+
+  _performInsertTimestamp(time) {
     const formatted = this.formatTime(time);
-    
     const chip = `<span class="ts-chip" contenteditable="false" data-time="${time}">▶ ${formatted}</span>&nbsp;`;
     
     const selection = this.getSafeSelection();
@@ -864,6 +912,16 @@ class YTDeepNote {
   }
 
   insertScreenshot() {
+    if (IS_SIDEPANEL) {
+      chrome.tabs.query({active: true, currentWindow: true}, tabs => {
+        if (tabs[0]) {
+          chrome.tabs.sendMessage(tabs[0].id, { type: "GET_SCREENSHOT" }, (res) => {
+            if (res && res.dataUrl) this._performInsertScreenshot(res.dataUrl);
+          });
+        }
+      });
+      return;
+    }
     const video = this.getVideoElement();
     if (!video) return;
 
@@ -874,43 +932,45 @@ class YTDeepNote {
       const ctx = canvas.getContext('2d');
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-      
-      const editor = this.shadow.getElementById('editor');
-      
-      const block = document.createElement('div');
-      block.className = 'block';
-      block.contentEditable = 'false';
-      block.innerHTML = `
-        <div class="img-wrapper">
-          <div class="img-delete-btn" title="Delete Screenshot">${ICONS.trash}</div>
-          <div style="resize: both; overflow: hidden; display: inline-block; max-width: 100%; border: 1px solid var(--border); padding: 2px; border-radius: 4px; margin: 8px 0; min-width: 100px; min-height: 50px;">
-            <img src="${dataUrl}" />
-          </div>
-        </div>
-      `;
-      
-      let node = this.getSafeSelection().anchorNode;
-      if (node && node.nodeType === 3) node = node.parentNode;
-      let currentBlock = node?.closest('.block');
-
-      if (currentBlock) {
-        currentBlock.parentNode.insertBefore(block, currentBlock.nextSibling);
-      } else {
-        editor.appendChild(block);
-      }
-      
-      const emptyP = document.createElement('p');
-      emptyP.className = 'block';
-      emptyP.contentEditable = 'true';
-      emptyP.innerHTML = '<br>';
-      block.parentNode.insertBefore(emptyP, block.nextSibling);
-      
-      this.moveCursorToEnd(emptyP);
-      this.saveData();
+      this._performInsertScreenshot(dataUrl);
     } catch (e) {
       console.error("Screenshot failed:", e);
       alert("Could not capture screenshot.");
     }
+  }
+
+  _performInsertScreenshot(dataUrl) {
+    const editor = this.shadow.getElementById('editor');
+    const block = document.createElement('div');
+    block.className = 'block';
+    block.contentEditable = 'false';
+    block.innerHTML = `
+      <div class="img-wrapper">
+        <div class="img-delete-btn" title="Delete Screenshot">${ICONS.trash}</div>
+        <div style="resize: both; overflow: hidden; display: inline-block; max-width: 100%; border: 1px solid var(--border); padding: 2px; border-radius: 4px; margin: 8px 0; min-width: 100px; min-height: 50px;">
+          <img src="${dataUrl}" />
+        </div>
+      </div>
+    `;
+    
+    let node = this.getSafeSelection().anchorNode;
+    if (node && node.nodeType === 3) node = node.parentNode;
+    let currentBlock = node?.closest('.block');
+
+    if (currentBlock) {
+      currentBlock.parentNode.insertBefore(block, currentBlock.nextSibling);
+    } else {
+      editor.appendChild(block);
+    }
+    
+    const emptyP = document.createElement('p');
+    emptyP.className = 'block';
+    emptyP.contentEditable = 'true';
+    emptyP.innerHTML = '<br>';
+    block.parentNode.insertBefore(emptyP, block.nextSibling);
+    
+    this.moveCursorToEnd(emptyP);
+    this.saveData();
   }
 
   handleAutoFormat(block) {
@@ -1009,6 +1069,29 @@ class YTDeepNote {
   }
 
   updateVideoMeta(forceLoad = false) {
+    if (IS_SIDEPANEL) {
+      chrome.tabs.query({active: true, currentWindow: true}, tabs => {
+        if (tabs[0] && tabs[0].url && tabs[0].url.includes("youtube.com/watch")) {
+          chrome.tabs.sendMessage(tabs[0].id, { type: "GET_VIDEO_META" }, (res) => {
+            if (res && res.videoData) {
+              const isNewVideo = !this.videoData || this.videoData.videoId !== res.videoData.videoId;
+              this.videoData = res.videoData;
+              
+              const $ = (id) => this.shadow.getElementById(id);
+              if ($('vidTitle')) {
+                $('vidTitle').innerText = this.videoData.title;
+                $('vidTime').innerText = `${this.formatTime(this.videoData.currentTime)} / ${this.formatTime(this.videoData.duration)}`;
+              }
+
+              if (isNewVideo || forceLoad) this.loadData();
+              this.injectBookmarkButton();
+            }
+          });
+        }
+      });
+      return;
+    }
+    
     const urlParams = new URLSearchParams(window.location.search);
     const videoId = urlParams.get('v');
     if (!videoId) return;
@@ -1328,7 +1411,7 @@ class YTDeepNote {
 let deepnoteInstance = null;
 
 function bootstrap() {
-  if (window.location.hostname.includes('youtube.com') && !deepnoteInstance) {
+  if ((window.location.hostname.includes('youtube.com') || IS_SIDEPANEL) && !deepnoteInstance) {
     deepnoteInstance = new YTDeepNote();
   }
 }
@@ -1366,6 +1449,35 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     document.body.appendChild(toast);
     setTimeout(() => { toast.style.opacity = '0'; setTimeout(()=>toast.remove(),300); }, 2000);
     sendResponse({success:true});
+  } else if (msg.type === "SIDEPANEL_OPENED" && deepnoteInstance) {
+    // Hide floating UI because sidepanel is taking over
+    deepnoteInstance.wrapper.classList.add('hidden');
+    deepnoteInstance.launcher.classList.add('hidden');
+    sendResponse({success:true});
+  } else if (msg.type === "GET_VIDEO_META" && deepnoteInstance) {
+    sendResponse({ videoData: deepnoteInstance.videoData });
+  } else if (msg.type === "GET_SCREENSHOT" && deepnoteInstance) {
+    const video = deepnoteInstance.getVideoElement();
+    if (video) {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        sendResponse({ dataUrl: canvas.toDataURL('image/jpeg', 0.8) });
+      } catch (err) {
+        sendResponse({ error: "CORS or canvas error" });
+      }
+    } else {
+      sendResponse({ error: "No video found" });
+    }
+  } else if (msg.type === "SEEK_VIDEO" && deepnoteInstance) {
+    const video = deepnoteInstance.getVideoElement();
+    if (video) {
+      video.currentTime = msg.time;
+      sendResponse({success: true});
+    }
   }
   return true;
 });

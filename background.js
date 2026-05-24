@@ -26,6 +26,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       .catch(error => sendResponse({ success: false, error: error.message }));
     return true; // Keep the message channel open for async response
   }
+  
+  if (request.type === 'OPEN_SIDE_PANEL') {
+    chrome.sidePanel.open({ windowId: sender.tab.windowId }).catch(e => console.error(e));
+    return;
+  }
 });
 
 

@@ -5,101 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>YouTube Notes</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="sidepanel.css">
+  <style>
+    body { margin: 0; padding: 0; background: #181818; color: white; font-family: 'Inter', sans-serif; overflow: hidden; }
+  </style>
 </head>
 <body>
-  
-  <div class="app-container">
-    
-    <header class="header">
-      <h1 class="video-title" id="videoTitle">Waiting for YouTube...</h1>
-      <div class="video-meta">
-        <span class="video-time" id="videoTime">0:00 / 0:00</span>
-        <button id="refreshBtn" class="icon-btn" title="Refresh Connection">🔄</button>
-      </div>
-    </header>
-
-    <div id="playlistContainer" class="playlist-container hidden">
-      <div class="playlist-stats">
-        <span id="playlistProgressText">Video 1 of 10</span>
-        <span id="playlistRemainingTime">Remaining: 0:00</span>
-      </div>
-      <div class="progress-bar-bg">
-        <div class="progress-bar-fill" id="playlistProgressBar"></div>
-      </div>
-    </div>
-
-    <section class="bookmarks-section">
-      <div class="section-header">
-        <h2>Bookmarks</h2>
-      </div>
-      
-      <div class="add-bookmark-form">
-        <input type="text" id="bookmarkName" placeholder="What happens here?" maxlength="40">
-        <div class="color-picker" id="bookmarkColorPicker">
-          <div class="color-swatch active" data-color="#e74c3c" style="background-color: #e74c3c;"></div>
-          <div class="color-swatch" data-color="#3498db" style="background-color: #3498db;"></div>
-          <div class="color-swatch" data-color="#2ecc71" style="background-color: #2ecc71;"></div>
-          <div class="color-swatch" data-color="#f1c40f" style="background-color: #f1c40f;"></div>
-          <div class="color-swatch" data-color="#9b59b6" style="background-color: #9b59b6;"></div>
-        </div>
-        <button id="addBookmarkBtn" class="primary-btn">Save</button>
-      </div>
-
-      <div class="bookmarks-list" id="bookmarksList">
-        <!-- Bookmarks injected here -->
-        <div class="empty-state">No bookmarks for this video yet. Press Ctrl+Shift+B to quick add.</div>
-      </div>
-    </section>
-
-    <section class="notes-section">
-      <div class="section-header">
-        <h2>Notes (Markdown)</h2>
-        <div class="tabs">
-          <button class="tab-btn active" id="tabEdit">Edit</button>
-          <button class="tab-btn" id="tabPreview">Preview</button>
-        </div>
-      </div>
-      
-      <div class="editor-container">
-        <textarea id="notesEditor" placeholder="Take your markdown notes here...&#10;- Bullet points&#10;**Bold text**&#10;`code blocks`"></textarea>
-        <div id="notesPreview" class="markdown-body hidden"></div>
-      </div>
-    </section>
-
-    <footer class="footer">
-      <div class="actions-row">
-        <button id="exportLocalBtn" class="action-btn">📥 Export .md</button>
-        <button id="syncNotionBtn" class="action-btn">🚀 Sync Notion</button>
-        <button id="settingsToggleBtn" class="icon-btn">⚙️</button>
-      </div>
-    </footer>
-
-    <!-- Settings Overlay -->
-    <div id="settingsPanel" class="settings-panel hidden">
-      <div class="settings-header">
-        <h2>Settings</h2>
-        <button id="closeSettingsBtn" class="icon-btn">✖</button>
-      </div>
-      <div class="settings-form">
-        <label for="notionToken">Notion Integration Token</label>
-        <input type="password" id="notionToken" placeholder="secret_...">
-        
-        <label for="notionDbId">Notion Database ID</label>
-        <input type="text" id="notionDbId" placeholder="Database ID">
-        
-        <button id="saveSettingsBtn" class="primary-btn full-width">Save Settings</button>
-        <div id="settingsStatus" class="status-message"></div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- Using a simple marked.js CDN for MVP Markdown rendering.
-       Since we are in an extension sidepanel, we might need a local script or configure CSP.
-       Manifest V3 extensions don't allow remote code execution by default. 
-       For MVP we'll build a tiny parser in sidepanel.js instead to avoid downloading files,
-       or we can assume basic parsing logic inside sidepanel.js -->
-  <script src="sidepanel.js"></script>
+  <!-- content.js will inject the UI here -->
+  <script src="content.js"></script>
 </body>
 </html>
