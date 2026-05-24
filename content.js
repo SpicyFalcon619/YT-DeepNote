@@ -1537,6 +1537,7 @@ class YTDeepNote {
 
     if (!this.storedData.bookmarks.length) {
       list.innerHTML = `<div class="empty">No bookmarks yet.</div>`;
+      this.renderYouTubeDots();
       return;
     }
 
