@@ -33,6 +33,19 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
+chrome.runtime.onConnect.addListener((port) => {
+  if (port.name === 'sidepanel') {
+    port.onDisconnect.addListener(() => {
+      // The side panel was closed! Send a message to the active tab to show the launcher
+      chrome.tabs.query({active: true, currentWindow: true}, tabs => {
+        if (tabs[0] && tabs[0].url && tabs[0].url.includes("youtube.com/watch")) {
+          chrome.tabs.sendMessage(tabs[0].id, { type: "SIDEPANEL_CLOSED" }).catch(() => {});
+        }
+      });
+    });
+  }
+});
+
 
 async function handleNotionSync(data) {
   const { token, databaseId, videoData, notes, bookmarks } = data;

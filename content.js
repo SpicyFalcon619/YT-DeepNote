@@ -1413,6 +1413,9 @@ let deepnoteInstance = null;
 function bootstrap() {
   if ((window.location.hostname.includes('youtube.com') || IS_SIDEPANEL) && !deepnoteInstance) {
     deepnoteInstance = new YTDeepNote();
+    if (IS_SIDEPANEL) {
+      chrome.runtime.connect({ name: 'sidepanel' });
+    }
   }
 }
 
@@ -1453,6 +1456,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     // Hide floating UI because sidepanel is taking over
     deepnoteInstance.wrapper.classList.add('hidden');
     deepnoteInstance.launcher.classList.add('hidden');
+    sendResponse({success:true});
+  } else if (msg.type === "SIDEPANEL_CLOSED" && deepnoteInstance) {
+    // Show launcher again when side panel closes
+    deepnoteInstance.launcher.classList.remove('hidden');
+    // Also reset docked state in case they want to open float
+    deepnoteInstance.isDocked = false;
     sendResponse({success:true});
   } else if (msg.type === "GET_VIDEO_META" && deepnoteInstance) {
     sendResponse({ videoData: deepnoteInstance.videoData });
