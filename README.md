@@ -12,14 +12,16 @@
 
 Built with performance in mind, it uses zero heavy frameworks and injects natively into YouTube's DOM for a seamless experience.
 
-## ✨ Key Features (v1.2.0-beta)
+## ✨ Key Features (v1.2.0)
 
+- 🗂️ **Native Side Panel Integration:** Move your notes into Chrome's persistent sidebar that survives tab navigations and seamlessly syncs with the floating UI.
+- 📋 **Playlist Progress Tracker:** Automatically detects YouTube playlists, builds a dynamic checklist, and uses intelligent 90% auto-completion hooks to track your progress.
 - 📌 **Native YouTube Player Integration:** A Bookmark button injected directly into the YouTube player controls. Colored bookmark dots injected directly onto the YouTube progress scrub bar!
 - ⏱️ **Clickable Timestamp Chips:** Press `Alt+T` to drop interactive timestamp chips into your notes. Click them to instantly seek the video.
-- 🪟 **Resizable & Fullscreen Editor:** Drag the bottom right corner to resize the floating overlay, or click the Maximize button for a distraction-free fullscreen canvas.
+- 🪟 **Custom 8-Way Window Resizing:** Drag any edge or corner to resize the floating overlay, or click the Maximize button for a distraction-free fullscreen canvas.
 - 🏠 **Global Home Dashboard:** A sleek, dedicated dashboard to view, manage, and export all your saved notes across different videos.
 - 📝 **Rich Auto-Formatting:** Full support for Markdown shortcuts (`#`, `> `, ` ``` `, `- `, `1. `), as well as rich text mapping for bold, italics, underline, and strikethrough.
-- 📸 **Video Screenshots:** One-click to capture high-quality video frames directly into your notes.
+- 📸 **Video Screenshots:** One-click to capture high-quality video frames directly into your notes. Includes intelligent bounding-box preservation for image resizing.
 - 🔄 **1-Click Notion Sync:** Sync your entire learning session (Title, URL, Bookmarks, and Notes) directly into a Notion Database.
 - 💾 **Markdown Export:** Download your notes to a beautifully formatted `.md` file for Obsidian or Logseq.
 - 🛡️ **Zero-Bleed Sandboxing:** Housed safely in a Shadow DOM so YouTube's CSS never conflicts with your writing.
@@ -64,8 +66,7 @@ To enable the 1-click Notion Sync feature, you just need a standard Notion Inter
 
 ## 🗺️ Roadmap
 
-- [ ] **Playlist Analytics Dashboard:** Calculate remaining time and ETA for course playlists.
-- [ ] **Storage Engine Migration:** Support multiple individual notes per video.
+- [ ] **Storage Engine Migration:** Support multiple individual notes and folders per video.
 - [ ] **Local OCR Extraction:** Capture video frames and extract text natively.
 
 ## 📄 License

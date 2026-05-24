@@ -1,3 +1,31 @@
+# YT DeepNote v1.2.0 Release
+
+We've supercharged YT DeepNote with a highly-requested feature for course-takers: The Playlist Tracker, along with massive under-the-hood stability improvements for data sync and usability!
+
+## ✨ What's New in v1.2.0
+
+### 1. YouTube Playlist Progress Tracker
+When navigating to a YouTube playlist, YT DeepNote now silently scrapes the series and adds a brand new **Playlist Progress** section to your UI.
+- Displays a dynamic progress bar for your entire playlist.
+- A beautiful checklist allows you to manually tick off videos you've finished.
+- **Auto-Completion:** A smart `timeupdate` hook checks when you pass the 90% completion mark of any video and automatically marks it as done.
+- The Side Panel seamlessly fetches playlist data from your active YouTube tab to stay perfectly synced.
+
+### 2. Custom 8-Way Window Resizing
+We ripped out the standard, restrictive CSS resize handles. The floating UI now acts like a native desktop window—you can drag and resize it from any of the 4 edges or 4 corners!
+
+### 3. Collapsible UI Sections
+You can now click on the section titles (e.g., "Bookmarks", "Playlist Progress") to collapse their contents, freeing up valuable screen real estate while you focus on note-taking.
+
+### 4. Cross-Tab Live Storage Syncing
+We implemented a robust `chrome.storage.onChanged` listener. If you have YT DeepNote open in the Side Panel and on the floating YouTube tab simultaneously, typing in one will instantly and magically sync the characters to the other.
+
+### 5. Persistent Image Resizing
+Resizing images via native browser handles (dragging the image corners) inside the WYSIWYG editor previously failed to save. We added a `mouseup` interceptor that accurately captures native resizing bounds and saves them.
+- Our custom Markdown exporter now intelligently exports `<img>` tags with explicit width measurements (e.g., `<img width="400">`) instead of standard Markdown `![]()` syntax, ensuring your images look perfect in Notion/Obsidian.
+
+---
+
 # YT DeepNote v1.1.0 Release
 
 Congratulations! The beta tags have been dropped, and YT DeepNote v1.1.0 is officially wrapped up and pushed to your main branch. This version introduces massive improvements to the architecture and user experience.
