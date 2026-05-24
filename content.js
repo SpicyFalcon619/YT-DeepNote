@@ -1597,10 +1597,14 @@ class YTDeepNote {
            } else {
              images.push(img.src);
              const imgIndex = images.length;
-             const widthStr = widthAttr ? `|${widthAttr.replace('px', '')}` : '';
+             const widthStr = widthAttr ? widthAttr.replace('px', '') : '';
              
              // Use Markdown reference link syntax! 
-             md += `\n![Screenshot${widthStr}][img${imgIndex}]\n\n`;
+             if (widthStr) {
+               md += `\n<div style="width: ${widthStr}px;">\n\n![Screenshot][img${imgIndex}]\n\n</div>\n\n`;
+             } else {
+               md += `\n![Screenshot][img${imgIndex}]\n\n`;
+             }
            }
          }
          return;
