@@ -49,12 +49,31 @@ async function handleNotionSync(data) {
             }
           }
         ]
-      },
-      "URL": {
-        url: videoData.url
       }
     },
-    children: []
+    children: [
+      {
+        object: 'block',
+        type: 'paragraph',
+        paragraph: {
+          rich_text: [
+            {
+              type: 'text',
+              text: {
+                content: "Video URL: "
+              }
+            },
+            {
+              type: 'text',
+              text: {
+                content: videoData.url,
+                link: { url: videoData.url }
+              }
+            }
+          ]
+        }
+      }
+    ]
   };
 
   // Add notes as blocks
