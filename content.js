@@ -183,7 +183,11 @@ const SHADOW_CSS = `
   .video-title { font-size: 15px; font-weight: 500; color: white; margin-bottom: 4px; line-height: 1.3; }
 
   /* Bookmarks */
-  .section-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); margin-bottom: 8px; font-weight: 600; }
+  .section-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); margin-bottom: 8px; font-weight: 600; display: flex; justify-content: space-between; cursor: pointer; align-items: center; user-select: none; }
+  .section-title:hover { color: white; }
+  .section-title .chevron { transition: transform 0.3s; font-size: 10px; }
+  .info-section.user-collapsed .section-title .chevron { transform: rotate(-90deg); }
+  .info-section.user-collapsed > *:not(.section-title) { display: none !important; }
   .bookmark-form { display: flex; gap: 8px; margin-bottom: 12px; }
   .bookmark-input { flex: 1; background: rgba(0,0,0,0.3); border: 1px solid var(--border); color: white; padding: 8px; border-radius: 6px; font-family: var(--font); font-size: 13px; outline: none; }
   .bookmark-input:focus { border-color: var(--accent); }
@@ -204,6 +208,25 @@ const SHADOW_CSS = `
   .bm-delete { opacity: 0; color: var(--text-dim); }
   .bm-item:hover .bm-delete { opacity: 1; color: var(--accent); }
   .empty { font-size: 13px; color: var(--text-dim); text-align: center; padding: 12px; border: 1px dashed var(--border); border-radius: 6px; }
+
+  /* Playlist Tracker */
+  .playlist-section { display: none; margin-top: 12px; border-top: 1px solid var(--border); padding-top: 12px; transition: max-height 0.3s, opacity 0.3s, margin 0.3s; overflow: hidden; flex-shrink: 0; }
+  .playlist-section.collapsed { max-height: 0; opacity: 0; margin-bottom: 0; margin-top: 0; padding-top: 0; border-top: none; }
+  .playlist-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .playlist-title { font-size: 13px; font-weight: 600; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%; }
+  .playlist-progress-text { font-size: 12px; color: var(--text-dim); }
+  .playlist-progress-bar { height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; margin-bottom: 12px; }
+  .playlist-progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s; }
+  .playlist-list { max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; padding-right: 4px; }
+  .playlist-list::-webkit-scrollbar { width: 4px; }
+  .playlist-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 2px; }
+  .pl-item { display: flex; align-items: center; gap: 8px; padding: 6px; border-radius: 4px; cursor: pointer; transition: 0.2s; font-size: 12px; }
+  .pl-item:hover { background: rgba(255,255,255,0.1); }
+  .pl-item.active { background: rgba(255,255,255,0.05); border-left: 2px solid var(--accent); }
+  .pl-checkbox { width: 14px; height: 14px; border: 1px solid var(--text-dim); border-radius: 3px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
+  .pl-checkbox.checked { background: var(--accent); border-color: var(--accent); color: white; }
+  .pl-title { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-dim); }
+  .pl-item.active .pl-title { color: white; font-weight: 500; }
 
   /* Editor */
   .editor-container { display: flex; flex-direction: column; flex: 1; min-height: 250px; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; resize: vertical; }
@@ -331,9 +354,8 @@ class YTDeepNote {
             <button class="icon-btn" id="btnRefresh" style="padding:0">${ICONS.refresh}</button>
           </div>
         </div>
-
         <div class="info-section" id="infoSection2">
-          <div class="section-title">Bookmarks</div>
+          <div class="section-title toggle-section" data-target="infoSection2"><span>Bookmarks</span><span class="chevron">▼</span></div>
           <div class="colors" id="colorPicker">
             ${this.colors.map((c, i) => `<div class="color ${i===0?'active':''}" data-color="${c}" style="background-color: ${c}"></div>`).join('')}
           </div>
@@ -341,9 +363,19 @@ class YTDeepNote {
             <input type="text" id="bmInput" class="bookmark-input" placeholder="What happens here?" maxlength="40" autocomplete="new-password" spellcheck="false" data-1p-ignore="true" data-lpignore="true">
             <button class="primary-btn" id="btnAddBm">Save</button>
           </div>
-          <div class="bookmarks-list" id="bmList">
-            <!-- Bookmarks go here -->
+          <div class="bookmarks-list" id="bmList"></div>
+        </div>
+
+        <div class="playlist-section info-section" id="playlistSection">
+          <div class="section-title toggle-section" data-target="playlistSection"><span>Playlist Progress</span><span class="chevron">▼</span></div>
+          <div class="playlist-header">
+            <div class="playlist-title" id="plTitle">Loading...</div>
+            <div class="playlist-progress-text" id="plProgressText">0/0</div>
           </div>
+          <div class="playlist-progress-bar">
+            <div class="playlist-progress-fill" id="plProgressFill"></div>
+          </div>
+          <div class="playlist-list" id="plList"></div>
         </div>
 
         <div class="editor-container">
@@ -449,7 +481,17 @@ class YTDeepNote {
   bindEvents() {
     const $ = (id) => this.shadow.getElementById(id);
     
+    this.setupPlaylistEvents();
+
     // Toggles
+    this.shadow.querySelectorAll('.toggle-section').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetId = btn.dataset.target;
+        const section = this.shadow.getElementById(targetId);
+        if (section) section.classList.toggle('user-collapsed');
+      });
+    });
+
     $('btnClose').addEventListener('click', () => {
       this.wrapper.classList.add('hidden');
       this.launcher.classList.remove('hidden');
@@ -1117,9 +1159,200 @@ class YTDeepNote {
 
     if (isNewVideo || forceLoad) {
       this.loadData();
+      this.autoMarkedCompleted = false;
     }
     
+    if (video && !video.dataset.timeTrackerAttached) {
+       video.dataset.timeTrackerAttached = "true";
+       video.addEventListener('timeupdate', () => this.checkVideoProgress());
+    }
+
     this.injectBookmarkButton();
+    this.updatePlaylistMeta();
+  }
+
+  updatePlaylistMeta() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const playlistId = urlParams.get('list');
+    
+    const $ = (id) => this.shadow.getElementById(id);
+    const plSection = $('playlistSection');
+    
+    if (!playlistId) {
+      if (plSection) plSection.style.display = 'none';
+      this.playlistData = null;
+      return;
+    }
+
+    if (plSection) plSection.style.display = 'block';
+
+    if (IS_SIDEPANEL) {
+      chrome.tabs.query({active: true, currentWindow: true}, tabs => {
+        if (tabs[0] && tabs[0].url && tabs[0].url.includes("youtube.com/watch")) {
+          chrome.tabs.sendMessage(tabs[0].id, { type: "GET_PLAYLIST_DATA" }, (res) => {
+            if (res && res.playlistData) {
+              this.playlistData = res.playlistData;
+              this.renderPlaylistUI();
+            }
+          });
+        }
+      });
+      return;
+    }
+
+    const scrapePlaylist = () => {
+      const panel = document.querySelector('ytd-playlist-panel-renderer');
+      if (!panel) return false;
+      
+      const titleEl = panel.querySelector('.title');
+      const title = titleEl ? titleEl.innerText : 'YouTube Playlist';
+      
+      const videoItems = panel.querySelectorAll('ytd-playlist-panel-video-renderer');
+      if (videoItems.length === 0) return false;
+      
+      const videos = [];
+      videoItems.forEach((item, index) => {
+        const a = item.querySelector('a.ytd-playlist-panel-video-renderer');
+        if (!a) return;
+        const href = a.getAttribute('href');
+        const vMatch = href.match(/[?&]v=([^&]+)/);
+        if (!vMatch) return;
+        const vId = vMatch[1];
+        const vTitleEl = item.querySelector('#video-title');
+        videos.push({
+          id: vId,
+          title: vTitleEl ? vTitleEl.getAttribute('title') || vTitleEl.innerText : 'Video ' + (index + 1),
+          index: index + 1
+        });
+      });
+      
+      this.playlistData = {
+        id: playlistId,
+        title: title,
+        videos: videos
+      };
+      
+      this.renderPlaylistUI();
+      return true;
+    };
+
+    if (!scrapePlaylist()) {
+      setTimeout(scrapePlaylist, 1500);
+      setTimeout(scrapePlaylist, 3000);
+    }
+  }
+
+  renderPlaylistUI() {
+    if (!this.playlistData) return;
+    const $ = (id) => this.shadow.getElementById(id);
+    const plTitle = $('plTitle');
+    const plProgressText = $('plProgressText');
+    const plProgressFill = $('plProgressFill');
+    const plList = $('plList');
+    
+    if (!plTitle) return;
+    
+    plTitle.innerText = this.playlistData.title;
+    
+    chrome.storage.local.get(['playlists'], (result) => {
+      const playlists = result.playlists || {};
+      const currentPl = playlists[this.playlistData.id] || { completed: [] };
+      const completed = currentPl.completed || [];
+      
+      const total = this.playlistData.videos.length;
+      const doneCount = completed.length;
+      const pct = total > 0 ? (doneCount / total) * 100 : 0;
+      
+      plProgressText.innerText = `${doneCount}/${total}`;
+      plProgressFill.style.width = `${pct}%`;
+      
+      const currentVideoId = this.videoData ? this.videoData.videoId : null;
+      
+      plList.innerHTML = this.playlistData.videos.map(v => {
+        const isCompleted = completed.includes(v.id);
+        const isActive = currentVideoId === v.id;
+        return `
+          <div class="pl-item ${isActive ? 'active' : ''}" data-vid="${v.id}">
+            <div class="pl-checkbox ${isCompleted ? 'checked' : ''}" data-action="toggle-complete">${isCompleted ? '✓' : ''}</div>
+            <div class="pl-index">${v.index}.</div>
+            <div class="pl-title" title="${v.title}">${v.title}</div>
+          </div>
+        `;
+      }).join('');
+    });
+  }
+
+  setupPlaylistEvents() {
+    const plList = this.shadow.getElementById('plList');
+    if (!plList) return;
+    plList.addEventListener('click', (e) => {
+      const checkbox = e.target.closest('.pl-checkbox');
+      const item = e.target.closest('.pl-item');
+      if (!item) return;
+      const vid = item.dataset.vid;
+      
+      if (checkbox) {
+        this.toggleVideoCompletion(vid);
+      } else {
+        if (IS_SIDEPANEL) {
+          chrome.tabs.query({active: true, currentWindow: true}, tabs => {
+            if (tabs[0]) chrome.tabs.sendMessage(tabs[0].id, { type: "NAVIGATE_VIDEO", vid: vid, list: this.playlistData.id });
+          });
+        } else {
+          window.location.href = `/watch?v=${vid}&list=${this.playlistData.id}`;
+        }
+      }
+    });
+  }
+
+  toggleVideoCompletion(vid) {
+    if (!this.playlistData) return;
+    const plId = this.playlistData.id;
+    chrome.storage.local.get(['playlists'], (result) => {
+      const playlists = result.playlists || {};
+      if (!playlists[plId]) playlists[plId] = { completed: [] };
+      const idx = playlists[plId].completed.indexOf(vid);
+      if (idx > -1) {
+        playlists[plId].completed.splice(idx, 1);
+      } else {
+        playlists[plId].completed.push(vid);
+      }
+      chrome.storage.local.set({ playlists }, () => {
+        this.renderPlaylistUI();
+        if (IS_SIDEPANEL) {
+          chrome.tabs.query({active: true, currentWindow: true}, tabs => {
+            if (tabs[0]) chrome.tabs.sendMessage(tabs[0].id, { type: "RENDER_PLAYLIST" });
+          });
+        }
+      });
+    });
+  }
+
+  checkVideoProgress() {
+    if (!this.playlistData || !this.videoData || this.autoMarkedCompleted) return;
+    const video = this.getVideoElement();
+    if (!video || video.duration === 0) return;
+    
+    if (video.currentTime / video.duration > 0.9) {
+      this.autoMarkedCompleted = true;
+      const vid = this.videoData.videoId;
+      const plId = this.playlistData.id;
+      chrome.storage.local.get(['playlists'], (result) => {
+        const playlists = result.playlists || {};
+        if (!playlists[plId]) playlists[plId] = { completed: [] };
+        if (!playlists[plId].completed.includes(vid)) {
+          playlists[plId].completed.push(vid);
+          chrome.storage.local.set({ playlists }, () => {
+            this.renderPlaylistUI();
+            if (IS_SIDEPANEL) {
+              chrome.tabs.query({active: true, currentWindow: true}, tabs => {
+                if (tabs[0]) chrome.tabs.sendMessage(tabs[0].id, { type: "RENDER_PLAYLIST" });
+              });
+            }
+          });
+        }
+      });
+    }
   }
 
   loadData() {
@@ -1487,6 +1720,14 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       video.currentTime = msg.time;
       sendResponse({success: true});
     }
+  } else if (msg.type === "GET_PLAYLIST_DATA" && deepnoteInstance) {
+    sendResponse({ playlistData: deepnoteInstance.playlistData });
+  } else if (msg.type === "NAVIGATE_VIDEO" && deepnoteInstance) {
+    window.location.href = `/watch?v=${msg.vid}&list=${msg.list}`;
+    sendResponse({success: true});
+  } else if (msg.type === "RENDER_PLAYLIST" && deepnoteInstance) {
+    deepnoteInstance.renderPlaylistUI();
+    sendResponse({success: true});
   }
   return true;
 });
