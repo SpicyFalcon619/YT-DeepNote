@@ -1579,6 +1579,7 @@ class YTDeepNote {
     temp.innerHTML = html;
     
     let md = '';
+    let images = [];
     Array.from(temp.children).forEach(child => {
       if (!child.classList.contains('block')) return;
       
@@ -1594,11 +1595,12 @@ class YTDeepNote {
            if (forNotion) {
              md += `\n*[Screenshot Captured - Export to Markdown to view]*\n\n`;
            } else {
-             if (widthAttr) {
-               md += `\n<img src="${img.src}" width="${widthAttr.replace('px', '')}">\n\n`;
-             } else {
-               md += `\n![](${img.src})\n\n`;
-             }
+             images.push(img.src);
+             const imgIndex = images.length;
+             const widthStr = widthAttr ? `|${widthAttr.replace('px', '')}` : '';
+             
+             // Use Markdown reference link syntax! 
+             md += `\n![Screenshot${widthStr}][img${imgIndex}]\n\n`;
            }
          }
          return;
@@ -1640,7 +1642,17 @@ class YTDeepNote {
       else md += `${text}\n\n`;
     });
     
-    return md.trim();
+    md = md.trim();
+
+    // Append reference links at the bottom
+    if (images.length > 0) {
+      md += `\n\n---\n\n`;
+      images.forEach((src, idx) => {
+        md += `[img${idx + 1}]: ${src}\n`;
+      });
+    }
+
+    return md;
   }
 
   exportMarkdown() {
