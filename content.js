@@ -174,7 +174,7 @@ const SHADOW_CSS = `
   .content-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
 
   /* Video Meta & Bookmarks */
-  .info-section { transition: max-height 0.3s, opacity 0.3s, margin 0.3s; overflow: hidden; }
+  .info-section { transition: max-height 0.3s, opacity 0.3s, margin 0.3s; overflow: hidden; flex-shrink: 0; }
   .info-section.collapsed { max-height: 0; opacity: 0; margin-bottom: 0; }
   
   .video-meta { font-size: 13px; color: var(--text-dim); display: flex; justify-content: space-between; }
@@ -188,7 +188,7 @@ const SHADOW_CSS = `
   .primary-btn { background: var(--accent); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 13px; transition: 0.2s; }
   .primary-btn:hover { background: var(--accent-hover); }
 
-  .colors { display: flex; gap: 6px; margin-bottom: 12px; }
+  .colors { display: flex; gap: 6px; margin-bottom: 12px; padding: 4px; margin-left: -4px; }
   .color { width: 20px; height: 20px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
   .color.active { transform: scale(1.2); border-color: white; }
 
@@ -214,10 +214,10 @@ const SHADOW_CSS = `
   .editor-content:empty:before { content: attr(placeholder); color: var(--text-dim); pointer-events: none; display: block; }
   .editor-content.hidden { display: none; }
   
-  .markdown-preview { flex: 1; padding: 12px; font-size: 14px; line-height: 1.5; overflow-y: auto; background: rgba(0,0,0,0.2); margin: 0; outline: none; border: none; }
+  .markdown-preview { flex: 1; padding: 12px; font-size: 13px; line-height: 1.5; font-family: 'Fira Code', 'Consolas', monospace; color: #a5d6ff; white-space: pre-wrap; overflow-y: auto; background: rgba(0,0,0,0.4); margin: 0; outline: none; border: none; }
   .markdown-preview.hidden { display: none; }
   
-  .editor-content h1, .editor-content h2, .editor-content h3, .markdown-preview h1, .markdown-preview h2, .markdown-preview h3 { margin-top: 0; margin-bottom: 8px; font-weight: 500; }
+  .editor-content h1, .editor-content h2, .editor-content h3 { margin-top: 0; margin-bottom: 8px; font-weight: 500; }
   .editor-content h1, .markdown-preview h1 { font-size: 18px; }
   .editor-content h2, .markdown-preview h2 { font-size: 16px; }
   .editor-content blockquote, .markdown-preview blockquote { border-left: 3px solid var(--accent); margin: 0 0 8px 0; padding-left: 12px; color: var(--text-dim); font-style: normal; background: rgba(0,0,0,0.2); padding: 8px 8px 8px 12px; border-radius: 0 6px 6px 0; }
@@ -232,10 +232,10 @@ const SHADOW_CSS = `
   .editor-content .img-delete-btn { position: absolute; top: 12px; right: -8px; background: rgba(0,0,0,0.8); color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; pointer-events: none; transition: 0.2s; z-index: 10; font-size: 14px; border: 1px solid var(--border); box-shadow: 0 2px 8px rgba(0,0,0,0.5); }
   .editor-content .img-delete-btn:hover { background: var(--accent); transform: scale(1.1); }
   
-  .editor-content .block, .markdown-preview .block { outline: none; min-height: 1.5em; line-height: 1.5; margin: 0; }
-  .editor-content p.block, .markdown-preview p.block { margin: 0 0 4px 0; }
-  .editor-content .block.ul-item, .markdown-preview .block.ul-item { display: list-item; margin-left: 20px; list-style-type: disc; }
-  .editor-content .block.ol-item, .markdown-preview .block.ol-item { display: list-item; margin-left: 20px; list-style-type: decimal; }
+  .editor-content .block { outline: none; min-height: 1.5em; line-height: 1.5; margin: 0; }
+  .editor-content p.block { margin: 0 0 4px 0; }
+  .editor-content .block.ul-item { display: list-item; margin-left: 20px; list-style-type: disc; }
+  .editor-content .block.ol-item { display: list-item; margin-left: 20px; list-style-type: decimal; }
   
   .ts-chip { background: var(--accent); color: white; padding: 2px 6px; border-radius: 4px; font-size: 12px; cursor: pointer; user-select: none; font-weight: bold; margin-right: 4px; display: inline-block; vertical-align: middle; }
   .ts-chip:hover { filter: brightness(1.2); }
@@ -357,7 +357,7 @@ class YTDeepNote {
             <button data-cmd="expandEditor" id="btnExpandEditor" title="Full Space Editor">${ICONS.expand}</button>
           </div>
           <div class="editor-content" id="editor" contenteditable="true" placeholder="Start typing your notes here..."></div>
-          <div class="markdown-preview hidden" id="mdPreview" contenteditable="false"></div>
+          <pre class="markdown-preview hidden" id="mdPreview"></pre>
         </div>
       </div>
 
@@ -797,19 +797,8 @@ class YTDeepNote {
       editor.classList.add('hidden');
       preview.classList.remove('hidden');
       
-      // Make preview look exactly like WYSIWYG but read-only
-      preview.innerHTML = editor.innerHTML;
-      
-      // Bind timestamps in preview to seek video!
-      preview.querySelectorAll('.ts-chip').forEach(chip => {
-        chip.addEventListener('click', (e) => {
-          e.preventDefault();
-          const video = this.getVideoElement();
-          if (video && chip.dataset.time) {
-            video.currentTime = parseFloat(chip.dataset.time);
-          }
-        });
-      });
+      // Make preview show syntax-colored raw markdown code
+      preview.textContent = this.htmlToMarkdown(editor.innerHTML);
       
       btn.classList.add('active');
       // Disable other toolbar buttons
