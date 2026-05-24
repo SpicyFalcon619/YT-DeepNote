@@ -1784,8 +1784,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     deepnoteInstance.launcher.classList.add('hidden');
     sendResponse({success:true});
   } else if (msg.type === "SIDEPANEL_CLOSED" && deepnoteInstance) {
-    // Show launcher again when side panel closes
-    deepnoteInstance.launcher.classList.remove('hidden');
+    // Show the full extension again when side panel closes
+    deepnoteInstance.wrapper.classList.remove('hidden');
+    deepnoteInstance.launcher.classList.add('hidden');
     // Also reset docked state in case they want to open float
     deepnoteInstance.isDocked = false;
     sendResponse({success:true});
