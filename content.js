@@ -192,7 +192,9 @@ const SHADOW_CSS = `
   .color { width: 20px; height: 20px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
   .color.active { transform: scale(1.2); border-color: white; }
 
-  .bookmarks-list { display: flex; flex-direction: column; gap: 6px; }
+  .bookmarks-list { display: flex; flex-direction: column; gap: 6px; max-height: 140px; overflow-y: auto; padding-right: 4px; }
+  .bookmarks-list::-webkit-scrollbar { width: 4px; }
+  .bookmarks-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 2px; }
   .bm-item { display: flex; align-items: center; gap: 8px; background: var(--bg-card); padding: 8px; border-radius: 6px; border-left: 3px solid var(--accent); cursor: pointer; font-size: 13px; transition: 0.2s; }
   .bm-item:hover { background: rgba(255,255,255,0.1); }
   .bm-time { font-family: monospace; color: var(--text-dim); font-size: 12px; background: rgba(0,0,0,0.3); padding: 2px 4px; border-radius: 4px; }
@@ -988,8 +990,16 @@ class YTDeepNote {
       if (!isDragging) return;
       const dx = e.clientX - startX;
       const dy = e.clientY - startY;
-      this.wrapper.style.left = `${initialX + dx}px`;
-      this.wrapper.style.top = `${initialY + dy}px`;
+      
+      let newX = initialX + dx;
+      let newY = initialY + dy;
+      
+      // Clamp to screen bounds so it doesn't get lost under Chrome UI
+      newY = Math.max(0, Math.min(newY, window.innerHeight - 40));
+      newX = Math.max(0, Math.min(newX, window.innerWidth - 40));
+
+      this.wrapper.style.left = `${newX}px`;
+      this.wrapper.style.top = `${newY}px`;
       this.wrapper.style.right = 'auto';
     });
 
