@@ -27,6 +27,3 @@ By default, the floating red launcher and the immersive UI now intelligently hid
 - **Color Picker Scaling:** The active red bookmark circle now expands beautifully without being cropped by container edges.
 - **Drag Safety:** Added rigorous screen-boundary constraints to ensure the floating UI can never be dragged out-of-bounds or lost under your browser tabs.
 - **Connection Recovery:** Clicking the 'X' to close the native Side Panel immediately communicates with the YouTube tab to restore your floating red launcher.
-
-## Ready to Publish
-You can now zip up this directory and publish **YT DeepNote v1.1.0** to the Chrome Web Store! Excellent work driving these UX improvements.
