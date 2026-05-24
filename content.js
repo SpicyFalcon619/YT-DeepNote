@@ -608,10 +608,15 @@ class YTDeepNote {
       });
     });
 
-    // Handle editor events for toolbar highlighting
+    // Handle editor events for toolbar highlighting and state saving
     const editor = this.shadow.getElementById('editor');
     ['keyup', 'mouseup', 'focus', 'click'].forEach(evt => {
-      editor.addEventListener(evt, () => this.updateToolbarState());
+      editor.addEventListener(evt, () => {
+        this.updateToolbarState();
+        if (evt === 'mouseup' || evt === 'keyup') {
+          this.saveData();
+        }
+      });
     });
     
     // Fix: Allow clicking on empty editor space to focus the last block, and intercept delete button
@@ -1479,6 +1484,28 @@ class YTDeepNote {
       }
       this.renderBookmarks();
     });
+
+    // Listen for storage changes from other tabs/sidepanel
+    if (!this._storageListenerAdded) {
+      this._storageListenerAdded = true;
+      chrome.storage.onChanged.addListener((changes, namespace) => {
+        if (namespace === 'local' && this.videoData) {
+          const k = `yt_data_${this.videoData.videoId}`;
+          if (changes[k] && changes[k].newValue) {
+            const newVal = changes[k].newValue;
+            // Prevent self-trigger loops by checking if different
+            if (JSON.stringify(this.storedData) !== JSON.stringify(newVal)) {
+              this.storedData = newVal;
+              const ed = this.shadow.getElementById('editor');
+              if (ed && this.storedData.htmlNotes !== ed.innerHTML) {
+                ed.innerHTML = this.storedData.htmlNotes || '<p class="block" contenteditable="true"><br></p>';
+              }
+              this.renderBookmarks();
+            }
+          }
+        }
+      });
+    }
   }
 
   saveData() {
@@ -1557,10 +1584,15 @@ class YTDeepNote {
       if (child.querySelector('img')) {
          const img = child.querySelector('img');
          if (img && img.src) {
+           const widthAttr = img.getAttribute('width') || img.style.width;
            if (forNotion) {
              md += `\n*[Screenshot Captured - Export to Markdown to view]*\n\n`;
            } else {
-             md += `\n![](${img.src})\n\n`;
+             if (widthAttr) {
+               md += `\n<img src="${img.src}" width="${widthAttr.replace('px', '')}">\n\n`;
+             } else {
+               md += `\n![](${img.src})\n\n`;
+             }
            }
          }
          return;
