@@ -1260,11 +1260,29 @@ class YTDeepNote {
   }
 
   updatePlaylistMeta() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const playlistId = urlParams.get('list');
-    
     const $ = (id) => this.shadow.getElementById(id);
     const plSection = $('playlistSection');
+
+    if (IS_SIDEPANEL) {
+      chrome.tabs.query({active: true, currentWindow: true}, tabs => {
+        if (tabs[0] && tabs[0].url && tabs[0].url.includes("youtube.com/watch")) {
+          chrome.tabs.sendMessage(tabs[0].id, { type: "GET_PLAYLIST_DATA" }, (res) => {
+            if (res && res.playlistData) {
+              if (plSection) plSection.style.display = 'block';
+              this.playlistData = res.playlistData;
+              this.renderPlaylistUI();
+            } else {
+              if (plSection) plSection.style.display = 'none';
+              this.playlistData = null;
+            }
+          });
+        }
+      });
+      return;
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const playlistId = urlParams.get('list');
     
     if (!playlistId) {
       if (plSection) plSection.style.display = 'none';
@@ -1273,20 +1291,6 @@ class YTDeepNote {
     }
 
     if (plSection) plSection.style.display = 'block';
-
-    if (IS_SIDEPANEL) {
-      chrome.tabs.query({active: true, currentWindow: true}, tabs => {
-        if (tabs[0] && tabs[0].url && tabs[0].url.includes("youtube.com/watch")) {
-          chrome.tabs.sendMessage(tabs[0].id, { type: "GET_PLAYLIST_DATA" }, (res) => {
-            if (res && res.playlistData) {
-              this.playlistData = res.playlistData;
-              this.renderPlaylistUI();
-            }
-          });
-        }
-      });
-      return;
-    }
 
     const scrapePlaylist = () => {
       const panel = document.querySelector('ytd-playlist-panel-renderer');
