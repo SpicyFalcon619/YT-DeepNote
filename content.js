@@ -190,7 +190,7 @@ const SHADOW_CSS = `
   .primary-btn { background: var(--accent); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 13px; transition: 0.2s; }
   .primary-btn:hover { background: var(--accent-hover); }
 
-  .colors { display: flex; gap: 6px; margin-bottom: 12px; padding: 4px; margin-left: -4px; }
+  .colors { display: flex; gap: 6px; margin-bottom: 12px; padding: 4px; padding-left: 8px; }
   .color { width: 20px; height: 20px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
   .color.active { transform: scale(1.2); border-color: white; }
 
