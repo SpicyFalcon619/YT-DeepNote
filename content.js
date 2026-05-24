@@ -24,6 +24,9 @@ const ICONS = {
   open: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-8"/><path d="m15 15-3-3-3 3"/><path d="M4 16v-2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2"/></svg>`,
   maximize: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>`,
   minimize: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>`,
+  expand: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>`,
+  collapse: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>`,
+  preview: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`,
   refresh: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>`,
   camera: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>`,
   timestamp: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`
@@ -170,7 +173,10 @@ const SHADOW_CSS = `
   .content-scroll::-webkit-scrollbar { width: 6px; }
   .content-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
 
-  /* Video Meta */
+  /* Video Meta & Bookmarks */
+  .info-section { transition: max-height 0.3s, opacity 0.3s, margin 0.3s; overflow: hidden; }
+  .info-section.collapsed { max-height: 0; opacity: 0; margin-bottom: 0; }
+  
   .video-meta { font-size: 13px; color: var(--text-dim); display: flex; justify-content: space-between; }
   .video-title { font-size: 15px; font-weight: 500; color: white; margin-bottom: 4px; line-height: 1.3; }
 
@@ -199,11 +205,15 @@ const SHADOW_CSS = `
   .editor-container { display: flex; flex-direction: column; flex: 1; min-height: 250px; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; resize: vertical; }
   .editor-toolbar { display: flex; gap: 2px; padding: 4px; background: rgba(0,0,0,0.3); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
   .editor-toolbar button { background: transparent; border: none; color: var(--text-dim); width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 4px; transition: 0.2s; }
-  .editor-toolbar button:hover { background: rgba(255,255,255,0.1); color: white; }
+  .editor-toolbar button.active { background: rgba(255,255,255,0.2); color: var(--accent); }
   
   /* Use a contenteditable div for true WYSIWYG */
   .editor-content { flex: 1; padding: 12px; outline: none; font-size: 14px; line-height: 1.5; overflow-y: auto; }
   .editor-content:empty:before { content: attr(placeholder); color: var(--text-dim); pointer-events: none; display: block; }
+  .editor-content.hidden { display: none; }
+  
+  .markdown-preview { flex: 1; padding: 12px; font-size: 13px; line-height: 1.5; font-family: 'Fira Code', monospace; color: #ccc; white-space: pre-wrap; overflow-y: auto; background: rgba(0,0,0,0.4); margin: 0; outline: none; border: none; }
+  .markdown-preview.hidden { display: none; }
   
   .editor-content h1, .editor-content h2, .editor-content h3 { margin-top: 0; margin-bottom: 8px; font-weight: 500; }
   .editor-content h1 { font-size: 18px; }
@@ -248,6 +258,8 @@ class YTDeepNote {
     this.storedData = { bookmarks: [], htmlNotes: '' };
     this.isDocked = false;
     this.isFullscreen = false;
+    this.isEditorExpanded = false;
+    this.isPreviewMode = false;
     this.selectedColor = '#ff0000';
     this.colors = ['#ff0000', '#3498db', '#2ecc71', '#f1c40f', '#9b59b6'];
     
@@ -277,10 +289,10 @@ class YTDeepNote {
 
   render() {
     this.wrapper = document.createElement('div');
-    this.wrapper.className = `yt-deepnote-app floating`;
+    this.wrapper.className = `yt-deepnote-app floating hidden`;
     
     this.launcher = document.createElement('button');
-    this.launcher.className = `toggle-launcher hidden`;
+    this.launcher.className = `toggle-launcher`;
     this.launcher.innerHTML = ICONS.open;
     this.launcher.title = "Open YT DeepNote";
 
@@ -297,9 +309,8 @@ class YTDeepNote {
           <button class="icon-btn" id="btnClose" title="Close">${ICONS.close}</button>
         </div>
       </div>
-
       <div class="content-scroll">
-        <div>
+        <div class="info-section" id="infoSection1">
           <div class="video-title" id="vidTitle">Loading...</div>
           <div class="video-meta">
             <span id="vidTime">0:00 / 0:00</span>
@@ -307,7 +318,7 @@ class YTDeepNote {
           </div>
         </div>
 
-        <div>
+        <div class="info-section" id="infoSection2">
           <div class="section-title">Bookmarks</div>
           <div class="colors" id="colorPicker">
             ${this.colors.map((c, i) => `<div class="color ${i===0?'active':''}" data-color="${c}" style="background-color: ${c}"></div>`).join('')}
@@ -339,8 +350,12 @@ class YTDeepNote {
             <div style="width:1px; background:var(--border); margin:4px"></div>
             <button data-cmd="insertTimestamp" title="Insert Timestamp (Alt+T)">${ICONS.timestamp}</button>
             <button data-cmd="insertScreenshot" title="Screenshot Video Frame">${ICONS.camera}</button>
+            <div style="flex:1"></div>
+            <button data-cmd="togglePreview" title="Toggle Markdown Preview">${ICONS.preview}</button>
+            <button data-cmd="expandEditor" id="btnExpandEditor" title="Full Space Editor">${ICONS.expand}</button>
           </div>
-          <div class="editor-content" id="editor" placeholder="Take your immersive notes here..."></div>
+          <div class="editor-content" id="editor" contenteditable="true" placeholder="Start typing your notes here..."></div>
+          <pre class="markdown-preview hidden" id="mdPreview"></pre>
         </div>
       </div>
 
@@ -478,14 +493,27 @@ class YTDeepNote {
               if (val === 'ol-item') block.classList.remove('ul-item');
             }
           }
+        } else if (cmd === 'expandEditor') {
+          this.toggleExpandEditor();
+        } else if (cmd === 'togglePreview') {
+          this.togglePreview();
         } else {
           document.execCommand(cmd, false, val);
+          if (cmd === 'formatBlock' && (val === 'ul-item' || val === 'ol-item')) {
+            this.applyListFormatting(val);
+          }
         }
+        this.updateToolbarState();
+        this.shadow.getElementById('editor').focus();
         this.saveData();
       });
     });
 
-    const editor = $('editor');
+    // Handle editor events for toolbar highlighting
+    const editor = this.shadow.getElementById('editor');
+    ['keyup', 'mouseup', 'focus', 'click'].forEach(evt => {
+      editor.addEventListener(evt, () => this.updateToolbarState());
+    });
     
     // Fix: Allow clicking on empty editor space to focus the last block, and intercept delete button
     editor.addEventListener('click', (e) => {
@@ -703,6 +731,81 @@ class YTDeepNote {
       this.wrapper.style.top = '20px';
       this.wrapper.style.right = '20px';
       this.wrapper.style.left = 'auto';
+    }
+  }
+
+  updateToolbarState() {
+    const editor = this.shadow.getElementById('editor');
+    if (this.isPreviewMode) return;
+    
+    this.shadow.querySelectorAll('.editor-toolbar button').forEach(btn => {
+      const cmd = btn.dataset.cmd;
+      const val = btn.dataset.val;
+      
+      if (['bold', 'italic', 'underline', 'strikeThrough'].includes(cmd)) {
+        if (document.queryCommandState(cmd)) btn.classList.add('active');
+        else btn.classList.remove('active');
+      } else if (cmd === 'formatBlock' && val) {
+        let blockVal = document.queryCommandValue('formatBlock');
+        // Simple check for lists, since queryCommandValue doesn't reliably work for custom classes
+        const selection = this.getSafeSelection();
+        let isActive = false;
+        if (selection.rangeCount > 0) {
+          const node = selection.focusNode;
+          if (node && editor.contains(node)) {
+             const block = node.nodeType === 3 ? node.parentNode.closest('.block') : node.closest('.block');
+             if (block && block.tagName === val) isActive = true;
+             if (block && block.classList.contains(val)) isActive = true;
+          }
+        }
+        if (isActive) btn.classList.add('active');
+        else btn.classList.remove('active');
+      }
+    });
+  }
+
+  toggleExpandEditor() {
+    this.isEditorExpanded = !this.isEditorExpanded;
+    const btn = this.shadow.getElementById('btnExpandEditor');
+    const sec1 = this.shadow.getElementById('infoSection1');
+    const sec2 = this.shadow.getElementById('infoSection2');
+    
+    if (this.isEditorExpanded) {
+      sec1.classList.add('collapsed');
+      sec2.classList.add('collapsed');
+      btn.innerHTML = ICONS.collapse;
+      btn.title = "Restore View";
+      btn.classList.add('active');
+    } else {
+      sec1.classList.remove('collapsed');
+      sec2.classList.remove('collapsed');
+      btn.innerHTML = ICONS.expand;
+      btn.title = "Full Space Editor";
+      btn.classList.remove('active');
+    }
+  }
+
+  togglePreview() {
+    this.isPreviewMode = !this.isPreviewMode;
+    const editor = this.shadow.getElementById('editor');
+    const preview = this.shadow.getElementById('mdPreview');
+    const btn = this.shadow.querySelector('[data-cmd="togglePreview"]');
+    
+    if (this.isPreviewMode) {
+      editor.classList.add('hidden');
+      preview.classList.remove('hidden');
+      preview.textContent = this.htmlToMarkdown(editor.innerHTML);
+      btn.classList.add('active');
+      // Disable other toolbar buttons
+      this.shadow.querySelectorAll('.editor-toolbar button').forEach(b => {
+        if(b !== btn && b.id !== 'btnExpandEditor') b.style.opacity = '0.3';
+      });
+    } else {
+      editor.classList.remove('hidden');
+      preview.classList.add('hidden');
+      btn.classList.remove('active');
+      this.shadow.querySelectorAll('.editor-toolbar button').forEach(b => b.style.opacity = '1');
+      editor.focus();
     }
   }
 
