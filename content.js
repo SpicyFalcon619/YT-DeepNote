@@ -1584,7 +1584,12 @@ class YTDeepNote {
       if (child.querySelector('img')) {
          const img = child.querySelector('img');
          if (img && img.src) {
-           const widthAttr = img.getAttribute('width') || img.style.width;
+           let widthAttr = img.getAttribute('width') || img.style.width;
+           // Fallback to the resizable wrapper's width if the user resized the wrapper instead of the img directly
+           if (!widthAttr && img.parentElement && img.parentElement.style && img.parentElement.style.width) {
+             widthAttr = img.parentElement.style.width;
+           }
+
            if (forNotion) {
              md += `\n*[Screenshot Captured - Export to Markdown to view]*\n\n`;
            } else {
