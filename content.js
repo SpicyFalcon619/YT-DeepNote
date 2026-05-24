@@ -82,7 +82,6 @@ const SHADOW_CSS = `
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    resize: both;
     min-width: 300px;
     min-height: 400px;
   }
@@ -197,6 +196,17 @@ const SHADOW_CSS = `
   .colors { display: flex; gap: 6px; margin-bottom: 12px; padding: 4px; padding-left: 8px; }
   .color { width: 20px; height: 20px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
   .color.active { transform: scale(1.2); border-color: white; }
+
+  /* Resizers */
+  .resizer { position: absolute; }
+  .resizer-r { right: -2px; top: 0; width: 6px; height: 100%; cursor: ew-resize; }
+  .resizer-l { left: -2px; top: 0; width: 6px; height: 100%; cursor: ew-resize; }
+  .resizer-b { bottom: -2px; left: 0; width: 100%; height: 6px; cursor: ns-resize; }
+  .resizer-t { top: -2px; left: 0; width: 100%; height: 6px; cursor: ns-resize; }
+  .resizer-br { right: -2px; bottom: -2px; width: 10px; height: 10px; cursor: nwse-resize; z-index: 2; }
+  .resizer-bl { left: -2px; bottom: -2px; width: 10px; height: 10px; cursor: nesw-resize; z-index: 2; }
+  .resizer-tr { right: -2px; top: -2px; width: 10px; height: 10px; cursor: nesw-resize; z-index: 2; }
+  .resizer-tl { left: -2px; top: -2px; width: 10px; height: 10px; cursor: nwse-resize; z-index: 2; }
 
   .bookmarks-list { display: flex; flex-direction: column; gap: 6px; max-height: 140px; overflow-y: auto; padding-right: 4px; }
   .bookmarks-list::-webkit-scrollbar { width: 4px; }
@@ -346,6 +356,16 @@ class YTDeepNote {
           <button class="icon-btn" id="btnClose" title="Close">${ICONS.close}</button>
         </div>
       </div>
+      
+      <div class="resizer resizer-r"></div>
+      <div class="resizer resizer-l"></div>
+      <div class="resizer resizer-b"></div>
+      <div class="resizer resizer-t"></div>
+      <div class="resizer resizer-br"></div>
+      <div class="resizer resizer-bl"></div>
+      <div class="resizer resizer-tr"></div>
+      <div class="resizer resizer-tl"></div>
+
       <div class="content-scroll">
         <div class="info-section" id="infoSection1">
           <div class="video-title" id="vidTitle">Loading...</div>
@@ -472,6 +492,7 @@ class YTDeepNote {
 
     this.bindEvents();
     this.makeDraggable();
+    this.makeResizable();
   }
 
   getSafeSelection() {
@@ -1095,6 +1116,73 @@ class YTDeepNote {
     });
 
     window.addEventListener('mouseup', () => { isDragging = false; });
+  }
+
+  makeResizable() {
+    const resizers = this.shadow.querySelectorAll('.resizer');
+    let isResizing = false;
+    let currentResizer;
+    let startX, startY, startW, startH, startLeft, startTop;
+
+    resizers.forEach(r => {
+      r.addEventListener('mousedown', (e) => {
+        if (this.isDocked) return;
+        isResizing = true;
+        currentResizer = r;
+        startX = e.clientX;
+        startY = e.clientY;
+        const rect = this.wrapper.getBoundingClientRect();
+        startW = rect.width;
+        startH = rect.height;
+        startLeft = rect.left;
+        startTop = rect.top;
+        e.preventDefault();
+        e.stopPropagation();
+      });
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!isResizing) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+
+      let newW = startW;
+      let newH = startH;
+      let newTop = startTop;
+      let newLeft = startLeft;
+
+      if (currentResizer.classList.contains('resizer-r') || currentResizer.classList.contains('resizer-br') || currentResizer.classList.contains('resizer-tr')) {
+        newW = startW + dx;
+      }
+      if (currentResizer.classList.contains('resizer-l') || currentResizer.classList.contains('resizer-bl') || currentResizer.classList.contains('resizer-tl')) {
+        newW = startW - dx;
+        newLeft = startLeft + dx;
+      }
+      if (currentResizer.classList.contains('resizer-b') || currentResizer.classList.contains('resizer-br') || currentResizer.classList.contains('resizer-bl')) {
+        newH = startH + dy;
+      }
+      if (currentResizer.classList.contains('resizer-t') || currentResizer.classList.contains('resizer-tr') || currentResizer.classList.contains('resizer-tl')) {
+        newH = startH - dy;
+        newTop = startTop + dy;
+      }
+
+      // Constrain min-width/height
+      if (newW >= 300) {
+        this.wrapper.style.width = newW + 'px';
+        if (currentResizer.classList.contains('resizer-l') || currentResizer.classList.contains('resizer-tl') || currentResizer.classList.contains('resizer-bl')) {
+          this.wrapper.style.left = newLeft + 'px';
+        }
+      }
+      
+      if (newH >= 400) {
+        this.wrapper.style.height = newH + 'px';
+        if (currentResizer.classList.contains('resizer-t') || currentResizer.classList.contains('resizer-tr') || currentResizer.classList.contains('resizer-tl')) {
+          this.wrapper.style.top = newTop + 'px';
+        }
+      }
+    });
+
+    window.addEventListener('mouseup', () => { isResizing = false; });
   }
 
   getVideoElement() {
