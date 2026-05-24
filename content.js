@@ -1219,6 +1219,7 @@ class YTDeepNote {
           });
         }
       });
+      this.updatePlaylistMeta();
       return;
     }
     
