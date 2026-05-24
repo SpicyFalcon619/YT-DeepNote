@@ -402,7 +402,7 @@ class YTDeepNote {
           
           <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); text-align: center;">
             <h4 style="margin:0 0 4px 0; color: var(--accent); font-weight: 500;">About YT DeepNote</h4>
-            <p style="margin:0; font-size:12px; color:var(--text-dim); line-height: 1.4;">Your ultimate companion for deep learning on YouTube. Seamlessly capture timestamped Markdown notes, precision bookmarks, and sync them directly to your Notion workspace. v1.1.0-beta</p>
+            <p style="margin:0; font-size:12px; color:var(--text-dim); line-height: 1.4;">Your ultimate companion for deep learning on YouTube. Seamlessly capture timestamped Markdown notes, precision bookmarks, and sync them directly to your Notion workspace. v1.1.0</p>
           </div>
 
           <button class="icon-btn" id="btnCloseSettings" style="position:absolute; top:16px; right:16px">${ICONS.close}</button>
