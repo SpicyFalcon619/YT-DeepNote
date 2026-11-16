@@ -1,74 +1,53 @@
-# 🎓 YT DeepNote
+# YT DeepNote
 
-<div align="center">
-  <em>The Ultimate YouTube Note-Taking & Productivity Extension for Students, Researchers, and Lifelong Learners.</em>
-</div>
+**Take real notes on YouTube, without leaving the video.** A Chrome extension that turns a tutorial into a study session: timestamped Markdown notes, bookmarks on the progress bar, screenshots, playlist progress, and one-click sync of the whole session to Notion. It adds no framework and runs inside YouTube's page.
 
----
+## Features (v1.2.0)
 
-## 🚀 Overview
+| | |
+|---|---|
+| **Side panel** | Keep your notes in Chrome's persistent side panel; they survive tab changes and stay in sync with the floating editor |
+| **Timestamp chips** | `Alt+T` drops a clickable timestamp into the note; click it to jump the video to that moment |
+| **Bookmarks** | A button in the player controls, plus coloured dots on the progress bar. `Alt+B` bookmarks from anywhere |
+| **Playlist tracker** | Detects a playlist, builds a checklist and marks videos done automatically at 90% watched |
+| **Screenshots** | Capture a video frame straight into the note, with resizable images |
+| **Rich formatting** | Markdown shortcuts (`#`, `>`, ``` ``` ```, `-`, `1.`) and bold, italic, underline, strikethrough |
+| **Home dashboard** | View, manage and export every note you have saved, across videos |
+| **Notion sync** | Send title, URL, bookmarks and notes to a Notion database in one click |
+| **Markdown export** | Download a `.md` file for Obsidian or Logseq |
+| **Resizable window** | Drag any edge or corner, or go full-screen |
+| **Isolated styling** | The editor lives in a Shadow DOM, so YouTube's CSS never touches your notes |
 
-**YT DeepNote** transforms standard YouTube into a powerful, distraction-free learning environment. Take beautiful, timestamped Markdown notes, drop precision bookmarks, capture on-screen video screenshots, and seamlessly export or 1-click sync everything directly to Notion. 
+## Install (developer mode)
 
-Built with performance in mind, it uses zero heavy frameworks and injects natively into YouTube's DOM for a seamless experience.
+1. Download or clone this repository.
+2. Open `chrome://extensions/` and turn on **Developer mode**.
+3. Click **Load unpacked** and choose this folder.
+4. Open any YouTube video and click the YT DeepNote button.
 
-## ✨ Key Features (v1.2.0)
+## Set up Notion sync
 
-- 🗂️ **Native Side Panel Integration:** Move your notes into Chrome's persistent sidebar that survives tab navigations and seamlessly syncs with the floating UI.
-- 📋 **Playlist Progress Tracker:** Automatically detects YouTube playlists, builds a dynamic checklist, and uses intelligent 90% auto-completion hooks to track your progress.
-- 📌 **Native YouTube Player Integration:** A Bookmark button injected directly into the YouTube player controls. Colored bookmark dots injected directly onto the YouTube progress scrub bar!
-- ⏱️ **Clickable Timestamp Chips:** Press `Alt+T` to drop interactive timestamp chips into your notes. Click them to instantly seek the video.
-- 🪟 **Custom 8-Way Window Resizing:** Drag any edge or corner to resize the floating overlay, or click the Maximize button for a distraction-free fullscreen canvas.
-- 🏠 **Global Home Dashboard:** A sleek, dedicated dashboard to view, manage, and export all your saved notes across different videos.
-- 📝 **Rich Auto-Formatting:** Full support for Markdown shortcuts (`#`, `> `, ` ``` `, `- `, `1. `), as well as rich text mapping for bold, italics, underline, and strikethrough.
-- 📸 **Video Screenshots:** One-click to capture high-quality video frames directly into your notes. Includes intelligent bounding-box preservation for image resizing.
-- 🔄 **1-Click Notion Sync:** Sync your entire learning session (Title, URL, Bookmarks, and Notes) directly into a Notion Database.
-- 💾 **Markdown Export:** Download your notes to a beautifully formatted `.md` file for Obsidian or Logseq.
-- 🛡️ **Zero-Bleed Sandboxing:** Housed safely in a Shadow DOM so YouTube's CSS never conflicts with your writing.
+1. Create an integration at [notion.so/my-integrations](https://www.notion.so/my-integrations), name it "YT DeepNote", and copy its **Internal Integration Secret**.
+2. Create a Notion database for your notes. In its `...` menu choose **Add connections** and select your integration.
+3. Copy the database ID from its URL (the 32-character part before `?v=`).
+4. In YT DeepNote, open **Settings**, paste the secret and the database ID, and save.
 
-## ⌨️ Keyboard Shortcuts
+The token is stored in the extension's own storage and is sent only to Notion. See the [privacy policy](PRIVACY_POLICY.md).
 
-| Shortcut | Context | Action |
-| :--- | :--- | :--- |
-| `Alt+B` | **Global** | **Quick Bookmark:** Drops a bookmark at the current video timestamp. |
-| `Alt+T` | **In Editor** | **Insert Timestamp:** Drops a clickable timestamp chip into your notes. |
-| `Ctrl+Shift+S` | **Coming Soon** | **Screenshot:** Instantly capture a video frame. |
+## Keyboard shortcuts
 
-## 🛠️ Installation (Developer Mode)
+| Shortcut | Where | Action |
+|---|---|---|
+| `Alt+B` | Anywhere on a video page | Bookmark the current moment |
+| `Alt+T` | In the editor | Insert a timestamp chip |
 
-1. Clone or download this repository.
-2. Open Google Chrome and navigate to `chrome://extensions/`.
-3. Toggle on **Developer mode** in the top right corner.
-4. Click **Load unpacked** and select the folder containing this extension.
-5. Open any YouTube video and click the **YT DeepNote** floating action button!
+## Roadmap
 
-## 🔗 Notion Integration (1-Minute Setup)
+- [ ] Several notes and folders per video
+- [ ] Local OCR: extract text from captured frames
 
-To enable the 1-click Notion Sync feature, you just need a standard Notion Internal Integration token.
+See the [changelog](CHANGELOG.md) for what changed in each release.
 
-### 1. Create a Notion Integration
-1. Go to [Notion Developers](https://www.notion.so/my-integrations).
-2. Click **New integration**, name it "YT DeepNote", and select the workspace where your database lives.
-3. Once created, copy the **Internal Integration Secret**.
+## License
 
-### 2. Connect Your Database
-1. Create a new Notion Database for your notes.
-2. Click the `...` menu in the top right of your Notion database page.
-3. Click **Add connections** and search for "YT DeepNote" (the integration you just created). Select it to give it access.
-4. Copy the Database ID from the URL.
-   *Example: `https://notion.so/workspace/`**`1234567890abcdef1234567890abcdef`**`?v=...` (The bolded part is your ID).*
-
-### 3. Link the Extension
-1. Open a YouTube video and click the YT DeepNote button.
-2. Click the **Settings (⚙️)** icon in the top right.
-3. Paste your **Notion API Token** (the secret you copied) and your **Database ID**.
-4. Click Save!
-
-## 🗺️ Roadmap
-
-- [ ] **Storage Engine Migration:** Support multiple individual notes and folders per video.
-- [ ] **Local OCR Extraction:** Capture video frames and extract text natively.
-
-## 📄 License
-
-MIT License. See `LICENSE` for more information.
+[MIT](LICENSE)
